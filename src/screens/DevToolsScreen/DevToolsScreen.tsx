@@ -10,6 +10,7 @@ import {useTheme} from '../../hooks';
 import {createStyles} from './styles';
 import {chatSessionRepository} from '../../repositories/ChatSessionRepository';
 import {TestCompletionScreen, DatabaseInspectorScreen} from './screens';
+import GpufModule from '../../services/GpufModule';
 
 // Define the stack navigator param list
 type DevToolsStackParamList = {
@@ -73,6 +74,19 @@ const DevToolsHomeScreen: React.FC = () => {
     }
   };
 
+  const handleGpufInit = async () => {
+    try {
+      const result = await GpufModule.init();
+      Alert.alert('GPUF', `gpuf_init success (code: ${result})`);
+    } catch (error) {
+      console.error('gpuf_init failed:', error);
+      Alert.alert(
+        'GPUF Error',
+        `gpuf_init failed: ${(error as Error).message || 'Unknown error'}`,
+      );
+    }
+  };
+
   return (
     <SafeAreaView style={styles.container} edges={['bottom']}>
       <ScrollView style={styles.scrollView}>
@@ -123,6 +137,22 @@ const DevToolsHomeScreen: React.FC = () => {
                 }
                 style={styles.button}>
                 Open Database Inspector
+              </Button>
+            </View>
+          </Card.Content>
+        </Card>
+
+        {/* GPUF Card */}
+        <Card elevation={1} style={styles.card}>
+          <Card.Title title="GPUF Native Module" />
+          <Card.Content>
+            <Text variant="bodyMedium" style={styles.description}>
+              Call the native gpuf_init routine to verify the GPUF module is
+              wired up correctly.
+            </Text>
+            <View style={styles.buttonContainer}>
+              <Button mode="contained" onPress={handleGpufInit} style={styles.button}>
+                Run gpuf_init
               </Button>
             </View>
           </Card.Content>
