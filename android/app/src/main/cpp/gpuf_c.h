@@ -58,12 +58,8 @@ extern void llama_backend_free(void);
 extern struct llama_model *llama_load_model_from_file(const char *path,
                                                       struct llama_model_params params);
 
-extern void llama_model_free(struct llama_model *model);
-
 extern struct llama_context *llama_init_from_model(const struct llama_model *model,
                                                    struct llama_context_params params);
-
-extern void llama_free(struct llama_context *ctx);
 
 extern int llama_tokenize(struct llama_context *ctx,
                           const char *text,
@@ -84,6 +80,16 @@ extern int llama_model_n_vocab(const struct llama_model *model);
 extern LlamaToken llama_token_bos(const struct llama_model *model);
 
 extern LlamaToken llama_token_eos(const struct llama_model *model);
+
+extern void llama_model_free(struct llama_model *model);
+
+extern void llama_free(struct llama_context *ctx);
+
+extern void *ggml_backend_dev_by_type(int32_t type_);
+
+extern void *ggml_backend_dev_get(int32_t i);
+
+extern int32_t ggml_backend_dev_count(void);
 
 struct llama_model *gpuf_load_model(const char *path);
 

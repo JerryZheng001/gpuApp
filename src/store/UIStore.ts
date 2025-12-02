@@ -47,6 +47,9 @@ export class UIStore {
   // Warning state for chat-related warnings (like multimodal warnings)
   chatWarning: ErrorState | null = null;
 
+  // Share functionality state
+  shareEnabled: boolean = false;
+
   showError(message: string) {
     // TODO: Implement error display logic (e.g., toast, alert, etc.)
     console.error(message);
@@ -64,6 +67,19 @@ export class UIStore {
     });
   }
 
+  setShareEnabled(enabled: boolean) {
+    runInAction(() => {
+      this.shareEnabled = enabled;
+    });
+  }
+
+  toggleShareEnabled() {
+    runInAction(() => {
+      this.shareEnabled = !this.shareEnabled;
+      console.log('Share functionality toggled:', this.shareEnabled);
+    });
+  }
+
   constructor() {
     makeAutoObservable(this);
     makePersistable(this, {
@@ -74,6 +90,7 @@ export class UIStore {
         'autoNavigatetoChat',
         'displayMemUsage',
         'benchmarkShareDialog',
+        'shareEnabled',
         '_language',
       ],
       storage: AsyncStorage,

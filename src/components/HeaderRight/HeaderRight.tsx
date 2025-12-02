@@ -2,7 +2,7 @@ import React, {useContext} from 'react';
 import {Alert, Keyboard, View} from 'react-native';
 
 import {observer} from 'mobx-react';
-import {IconButton, useTheme} from 'react-native-paper';
+import {IconButton, useTheme, Switch} from 'react-native-paper';
 
 import {
   // ClockFastForwardIcon,
@@ -152,6 +152,22 @@ export const HeaderRight: React.FC = observer(() => {
           chatSessionStore.resetActiveSession();
         }}
       />
+      {/* Share functionality toggle - only show when model is selected */}
+      {modelStore.activeModel && (
+        <View style={styles.shareToggleContainer}>
+          {/* <ShareIcon 
+            stroke={uiStore.shareEnabled ? theme.colors.primary : theme.colors.onSurfaceDisabled} 
+            width={20} 
+            height={20} 
+          /> */}
+          <Switch
+            value={uiStore.shareEnabled}
+            onValueChange={() => uiStore.toggleShareEnabled()}
+            color={theme.colors.primary}
+            style={styles.shareSwitch}
+          />
+        </View>
+      )}
       <Menu
         visible={menuVisible}
         onDismiss={closeMenu}

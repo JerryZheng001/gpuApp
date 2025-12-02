@@ -11,4 +11,12 @@ export const styles = StyleSheet.create({
   chatBtn: {
     marginRight: 0,
   },
+  shareToggleContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginHorizontal: 8,
+  },
+  shareSwitch: {
+    marginLeft: 4,
+  },
 });
