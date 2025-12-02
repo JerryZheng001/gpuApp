@@ -160,12 +160,14 @@ export const HeaderRight: React.FC = observer(() => {
             width={20} 
             height={20} 
           /> */}
+          分享
           <Switch
             value={uiStore.shareEnabled}
             onValueChange={() => uiStore.toggleShareEnabled()}
             color={theme.colors.primary}
             style={styles.shareSwitch}
           />
+          
         </View>
       )}
       <Menu
