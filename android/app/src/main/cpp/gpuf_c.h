@@ -133,4 +133,8 @@ jstring Java_com_gpuf_c_GPUEngine_getVersion(JNIEnv env, JClass _class);
 
 jint Java_com_gpuf_c_GPUEngine_cleanup(JNIEnv _env, JClass _class);
 
+jstring Java_com_gpuf_c_GPUEngine_getSystemInfo(JNIEnv env, JClass _class);
+
+jint Java_com_gpuf_c_GPUEngine_gpuf_1init(JNIEnv _env, JClass _class);
+
 #endif /* GPUF_C_H */
