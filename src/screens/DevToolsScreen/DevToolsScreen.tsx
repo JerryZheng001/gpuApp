@@ -76,7 +76,7 @@ const DevToolsHomeScreen: React.FC = () => {
 
   const handleGpufInit = async () => {
     try {
-      const result = await GpufModule.init();
+      const result = await GpufModule.getVersion();
       Alert.alert('GPUF', `gpuf_init success (code: ${result})`);
     } catch (error) {
       console.error('gpuf_init failed:', error);
