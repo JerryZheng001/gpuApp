@@ -379,9 +379,17 @@ export interface Model {
 }
 
 export type RootDrawerParamList = {
+  Home: undefined;
   Chat: undefined;
   Models: undefined;
+  'Pals (experimental)': undefined;
+  Benchmark: undefined;
   Settings: undefined;
+  'App Info': undefined;
+  Profile: undefined;
+  'Share Metering': undefined;
+  'Revenue Bill': undefined;
+  'Dev Tools': undefined;
 };
 
 export type TokenNativeEvent = {
@@ -476,7 +484,7 @@ type RequiredContextFields =
   | 'use_mlock';
 
 /**
- * Context initialization parameters for PocketPal AI
+ * Context initialization parameters for GPUNexus AI
  * Extends llama.rn's ContextParams but excludes 'model' and makes core fields required
  * This ensures type safety and eliminates the need for fallback values in UI components
  */

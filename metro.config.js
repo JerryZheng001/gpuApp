@@ -31,6 +31,12 @@ const config = {
     // Make sure decorators are properly transformed
     enableBabelRuntime: true,
   },
+  server: {
+    // Enable connection from physical devices
+    enhanceMiddleware: (middleware) => {
+      return middleware;
+    },
+  },
   //watchFolders: [...localPackagePaths],
 };
 

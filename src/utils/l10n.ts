@@ -484,7 +484,7 @@ export const l10n = {
         'An app that brings language models directly to your phone. Sits on the shoulders of llama.cpp and llama.rn.',
       supportProject: 'Support the Project',
       supportProjectDescription:
-        'If you enjoy using PocketPal AI, please consider supporting the project by:',
+        'If you enjoy using GPUNexus AI, please consider supporting the project by:',
       githubButton: 'Star on GitHub',
       orText: 'or',
       orBy: 'or by',
@@ -496,10 +496,10 @@ export const l10n = {
     feedback: {
       title: 'Send Feedback',
       description:
-        'Your voice matters! Tell us how PocketPal AI is helping you and what we can do to make it even more useful.',
+        'Your voice matters! Tell us how GPUNexus AI is helping you and what we can do to make it even more useful.',
       shareThoughtsButton: 'Sharing your thoughts',
       useCase: {
-        label: 'What are you using PocketPal AI for?',
+        label: 'What are you using GPUNexus AI for?',
         placeholder: 'e.g., summarization, roleplay, etc.',
       },
       featureRequests: {
@@ -511,7 +511,7 @@ export const l10n = {
         placeholder: 'Share any other thoughts you may have.',
       },
       usageFrequency: {
-        label: 'How often do you use PocketPal AI? (Optional)',
+        label: 'How often do you use GPUNexus AI? (Optional)',
         options: {
           daily: 'Daily',
           weekly: 'Weekly',
@@ -573,7 +573,7 @@ export const l10n = {
       chatEmptyPlaceholder: {
         noModelsTitle: 'No Models Available',
         noModelsDescription:
-          'Download a model to start chatting with PocketPal',
+          'Download a model to start chatting with GPUNexus',
         noModelsButton: 'Download Model',
         activateModelTitle: 'Activate Model To Get Started',
         activateModelDescription:
@@ -893,13 +893,17 @@ export const l10n = {
       },
       sidebarContent: {
         menuItems: {
+          home: 'Home',
           chat: 'Chat',
-          models: 'Models',
           pals: 'Pals',
+          models: 'Models',
           benchmark: 'Benchmark',
           settings: 'Settings',
+          profile: 'Profile',
           appInfo: 'App Info',
-          testCompletion: 'Test Completion',
+          shareMetering: 'Share Metering',
+          revenueBill: 'Revenue Bill',
+          myDevices: 'My Devices',
         },
         deleteChatTitle: 'Delete Chat',
         deleteChatMessage: 'Are you sure you want to delete this chat?',
@@ -973,6 +977,18 @@ export const l10n = {
       addPal: 'Add Pal',
       // Compact Auth Bar
       signInToAccessLibrary: 'Sign in to access your library from palshub.ai',
+      // Profile Screen
+      editProfile: 'Edit Profile',
+      menuItems: {
+        membership: 'Membership Center',
+        devices: 'My Devices',
+        monitoring: 'Device Monitoring',
+        metering: 'Share Metering',
+        revenue: 'Revenue Bill',
+        allModels: 'All Models',
+        systemSettings: 'System Settings',
+        aboutUs: 'About Us',
+      },
       // Profile Sheet
       signOut: 'Sign Out',
       signOutConfirmation: 'Are you sure you want to sign out?',
@@ -1047,7 +1063,7 @@ export const l10n = {
     },
     camera: {
       permissionTitle: 'Camera Permission Required',
-      permissionMessage: 'PocketPal needs camera access to analyze images',
+      permissionMessage: 'GPUNexus needs camera access to analyze images',
       requestingPermission: 'Requesting camera permission...',
       noDevice: 'No camera device found',
       errorTitle: 'Camera Error',
@@ -1061,7 +1077,7 @@ export const l10n = {
     },
     video: {
       permissionTitle: 'Camera Permission Required',
-      permissionMessage: 'PocketPal needs camera access for video analysis',
+      permissionMessage: 'GPUNexus needs camera access for video analysis',
       requestingPermission: 'Requesting camera permission...',
       noDevice: 'No camera device found',
       errorTitle: 'Camera Error',
@@ -1087,13 +1103,17 @@ export const l10n = {
       },
     },
     screenTitles: {
+      home: 'Home',
       chat: 'Chat',
+      pals: 'Pals',
       models: 'Models',
-      pals: 'Pals (experimental)',
       benchmark: 'Benchmark',
       settings: 'Settings',
       appInfo: 'App Info',
-      testCompletion: 'Test Completion',
+      profile: 'Profile',
+      shareMetering: 'Share Metering',
+      revenueBill: 'Revenue Bill',
+      myDevices: 'My Devices',
     },
     chat: {
       conversationReset: 'Conversation reset!',
@@ -1428,9 +1448,8 @@ export const l10n = {
       clearCachesConfirmMessage:
         'すべてのキャッシュされたセッションデータ（{{fileCount}}ファイル、{{size}}）をクリアします。クリア後、ショートカットの初回使用時は遅くなる可能性があります。Palやチャット履歴には影響しません。',
       clearCachesSuccess: '{{count}}個のキャッシュファイルをクリアしました。',
-      clearCachesError:
-        'キャッシュのクリアに失敗しました。もう一度お試しください。',
-      noCachesToClear: 'クリアするキャッシュがありません。',
+      clearCachesError: 'Failed to clear caches. Please try again.',
+      noCachesToClear: 'No caches to clear.',
     },
     memory: {
       shortWarning: 'メモリ警告',
@@ -1455,7 +1474,7 @@ export const l10n = {
     storage: {
       checkFailed: 'ストレージの確認に失敗しました',
       lowStorage:
-        'ストレージ容量不足！モデル {{modelSize}} > 空き容量 {{freeSpace}}',
+        'ストレージ容量不足！モデル {{modelSize}} > {{freeSpace}} free',
     },
     generation: {
       modelNotInitialized: 'モデルコンテキストが初期化されていません',
@@ -1757,7 +1776,7 @@ export const l10n = {
         '言語モデルをスマートフォンで直接利用できるアプリです、llama.cppとllama.rnをベースに開発されています',
       supportProject: 'プロジェクトを応援する',
       supportProjectDescription:
-        'PocketPal AIをご利用いただき楽しんでいただけているなら、以下の方法でプロジェクトを応援いただけると幸いです：',
+        'GPUNexus AIをご利用いただき楽しんでいただけているなら、以下の方法でプロジェクトを応援いただけると幸いです：',
       githubButton: 'GitHubでスターをつける',
       orText: 'または',
       orBy: 'または',
@@ -1769,10 +1788,10 @@ export const l10n = {
     feedback: {
       title: 'フィードバックを送信',
       description:
-        'ご意見をお聞かせください！PocketPal AIの使い心地やより便利にするためのアイデアをお寄せください',
+        'ご意見をお聞かせください！GPUNexus AIの使い心地やより便利にするためのアイデアをお寄せください',
       shareThoughtsButton: 'ご意見を共有する',
       useCase: {
-        label: 'PocketPal AIをどのように使っていますか？',
+        label: 'GPUNexus AIをどのように使っていますか？',
         placeholder: '例：要約、ロールプレイなど',
       },
       featureRequests: {
@@ -1848,7 +1867,7 @@ export const l10n = {
       chatEmptyPlaceholder: {
         noModelsTitle: '利用可能なモデルがありません',
         noModelsDescription:
-          'PocketPalとチャットを始めるにはモデルをダウンロードしてください',
+          'GPUNexusとチャットを始めるにはモデルをダウンロードしてください',
         noModelsButton: 'モデルをダウンロード',
         activateModelTitle: '開始するにはモデルを有効化してください',
         activateModelDescription:
@@ -2163,13 +2182,16 @@ export const l10n = {
       },
       sidebarContent: {
         menuItems: {
+          home: 'ホーム',
           chat: 'チャット',
+          pals: 'パルズ',
           models: 'モデル',
-          pals: 'アシスタント',
           benchmark: 'ベンチマーク',
           settings: '設定',
+          profile: 'プロフィール',
           appInfo: 'アプリ情報',
-          testCompletion: 'テスト完了',
+          shareMetering: '共有計量',
+          revenueBill: '収益請求書',
         },
         deleteChatTitle: 'チャットを削除',
         deleteChatMessage: 'このチャットを削除してもよろしいですか？',
@@ -2245,6 +2267,18 @@ export const l10n = {
       // Compact Auth Bar
       signInToAccessLibrary:
         'palshub.aiのライブラリにアクセスするにはサインインしてください',
+      // Profile Screen
+      editProfile: '編集資料',
+      menuItems: {
+        membership: '会員センター',
+        devices: 'マイデバイス',
+        monitoring: 'デバイス監視',
+        metering: '共有計量',
+        revenue: '収益請求書',
+        allModels: 'すべてのモデル',
+        systemSettings: 'システム設定',
+        aboutUs: '私たちについて',
+      },
       // Profile Sheet
       signOut: 'サインアウト',
       signOutConfirmation: 'サインアウトしてもよろしいですか？',
@@ -2259,7 +2293,7 @@ export const l10n = {
       deletePalConfirmation: '「{{palName}}」を削除してもよろしいですか？',
       // Filter Labels
       filters: {
-        all: 'すべて',
+        all: '全部',
         myPals: 'マイPal',
         local: 'ローカル',
         video: '動画',
@@ -2321,7 +2355,7 @@ export const l10n = {
     camera: {
       permissionTitle: 'カメラ許可が必要',
       permissionMessage:
-        'PocketPalが画像を分析するにはカメラへのアクセスが必要です',
+        'GPUNexusが画像を分析するにはカメラへのアクセスが必要です',
       requestingPermission: 'カメラの許可をリクエスト中...',
       noDevice: 'カメラデバイスが見つかりません',
       errorTitle: 'カメラエラー',
@@ -2336,7 +2370,7 @@ export const l10n = {
     video: {
       permissionTitle: 'カメラ許可が必要',
       permissionMessage:
-        'PocketPalが動画を分析するにはカメラへのアクセスが必要です',
+        'GPUNexusが動画を分析するにはカメラへのアクセスが必要です',
       requestingPermission: 'カメラの許可をリクエスト中...',
       noDevice: 'カメラデバイスが見つかりません',
       errorTitle: 'カメラエラー',
@@ -2362,13 +2396,17 @@ export const l10n = {
       },
     },
     screenTitles: {
+      home: 'ホーム',
       chat: 'チャット',
+      pals: 'パルズ',
       models: 'モデル',
-      pals: 'アシスタント（実験的）',
       benchmark: 'ベンチマーク',
       settings: '設定',
       appInfo: 'アプリ情報',
-      testCompletion: 'テスト完了',
+      profile: 'プロフィール',
+      shareMetering: '共有計量',
+      revenueBill: '収益請求書',
+      myDevices: 'マイデバイス',
     },
     chat: {
       conversationReset: '会話をリセットしました',
@@ -2518,34 +2556,26 @@ export const l10n = {
     },
     errors: {
       unexpectedError: '予期しないエラーが発生しました',
-      hfAuthenticationError:
-        'Hugging Face認証エラー: トークンが見つからないか無効です',
-      hfAuthenticationErrorSearch:
-        'Hugging Face認証エラー: トークンが見つからないか無効です',
+      hfAuthenticationError: 'Hugging Face認証エラー: トークンが見つからないか無効です',
+      hfAuthenticationErrorSearch: 'Hugging Face認証エラー: トークンが見つからないか無効です',
       authenticationError: '認証エラー: トークンが見つからないか無効です',
-      hfAuthorizationError:
-        'Hugging Face認可エラー: このリソースにアクセスする権限がありません',
-      authorizationError:
-        '認可エラー: このリソースにアクセスする権限がありません',
+      hfAuthorizationError: 'Hugging Face認可エラー: このリソースにアクセスする権限がありません',
+      authorizationError: '認可エラー: このリソースにアクセスする権限がありません',
       hfServerError: 'Hugging Faceサーバーエラー: APIサーバーの問題',
       serverError: 'サーバーエラー: APIサーバーの問題',
-      hfNetworkTimeout:
-        'ネットワークタイムアウト: Hugging Faceへのリクエストが完了するのに時間がかかりすぎました',
-      networkTimeout:
-        'ネットワークタイムアウト: リクエストが完了するのに時間がかかりすぎました',
+      hfNetworkTimeout: 'ネットワークタイムアウト: Hugging Faceへのリクエストが完了するのに時間がかかりすぎました',
+      networkTimeout: 'ネットワークタイムアウト: リクエストが完了するのに時間がかかりすぎました',
       hfNetworkError: 'ネットワークエラー: Hugging Face APIに接続できません',
       networkError: 'ネットワークエラー: APIに接続できません',
       downloadSetupFailedTitle: 'ダウンロード設定失敗',
-      downloadSetupFailedMessage:
-        'モデルのダウンロード準備に失敗しました: {message}',
+      downloadSetupFailedMessage: '无法准备模型下载: {message}',
       cameraErrorTitle: 'カメラエラー',
-      cameraErrorMessage: '写真撮影に失敗しました',
+      cameraErrorMessage: '拍照失败',
       galleryErrorTitle: 'ギャラリーエラー',
-      galleryErrorMessage: '画像選択に失敗しました',
+      galleryErrorMessage: '选择图片失败',
     },
     simulator: {
-      cameraNotAvailable:
-        'シミュレーターではカメラを使用できません、実機をご使用ください',
+      cameraNotAvailable: '当前虚拟机无法使用摄像头，请使用物理机！！',
     },
   },
 
@@ -2994,7 +3024,7 @@ export const l10n = {
         '直接将语言模型完全本地部署在你手机上的APP，建立在llama.cpp和llama.rn的基础上！',
       supportProject: '支持项目',
       supportProjectDescription:
-        '如果你喜欢使用PocketPal AI，请考虑通过以下方式支持项目：',
+        '如果你喜欢使用GPUNexus AI，请考虑通过以下方式支持项目：',
       githubButton: '在GitHub上点个Star~',
       orText: '或',
       orBy: '或通过',
@@ -3005,10 +3035,10 @@ export const l10n = {
     feedback: {
       title: '发送反馈',
       description:
-        '你的声音很重要！告诉我们PocketPal AI如何帮助你以及我们可以做什么来使其更有用',
+        '你的声音很重要！告诉我们GPUNexus AI如何帮助你以及我们可以做什么来使其更有用',
       shareThoughtsButton: '分享你的想法',
       useCase: {
-        label: '你如何使用PocketPal AI？',
+        label: '你如何使用GPUNexus AI？',
         placeholder: '例如：摘要、角色扮演等',
       },
       featureRequests: {
@@ -3020,7 +3050,7 @@ export const l10n = {
         placeholder: '如果你有其他想法，请随时分享',
       },
       usageFrequency: {
-        label: '你多久使用一次PocketPal AI？（可选）',
+        label: '你多久使用一次GPUNexus AI？（可选）',
         options: {
           daily: '每天',
           weekly: '每周',
@@ -3075,9 +3105,9 @@ export const l10n = {
       },
       chatEmptyPlaceholder: {
         noModelsTitle: '没有可用的模型',
-        noModelsDescription: '需要下载一个模型，才能与PocketPal开始聊天',
+        noModelsDescription: '需要下载一个模型，才能与GPUNexus开始聊天',
         noModelsButton: '下载模型',
-        activateModelTitle: '在你和PocketPal开始聊天前，请先激活模型~',
+        activateModelTitle: '在你和GPUNexus开始聊天前，请先激活模型~',
         activateModelDescription: '选择并加载一个模型以开始聊天',
         activateModelButton: '选择模型',
         loading: '加载中...',
@@ -3381,13 +3411,16 @@ export const l10n = {
       },
       sidebarContent: {
         menuItems: {
+          home: '首页',
           chat: '聊天',
+          pals: '伙伴',
           models: '模型',
-          pals: 'Pals',
           benchmark: '基准测试',
           settings: '设置',
-          appInfo: '关于',
-          testCompletion: '测试完成',
+          profile: '个人中心',
+          appInfo: '应用信息',
+          shareMetering: '分享计量',
+          revenueBill: '收益账单',
         },
         deleteChatTitle: '删除聊天',
         deleteChatMessage: '确定要删除这个聊天记录吗？',
@@ -3461,6 +3494,18 @@ export const l10n = {
       addPal: '添加Pal',
       // Compact Auth Bar
       signInToAccessLibrary: '登录以访问您在palshub.ai的资料库',
+      // Profile Screen
+      editProfile: '编辑资料',
+      menuItems: {
+        membership: '会员中心',
+        devices: '我的设备',
+        monitoring: '设备监控',
+        metering: '分享计量',
+        revenue: '收益账单',
+        allModels: '全部模型',
+        systemSettings: '系统设置',
+        aboutUs: '关于我们',
+      },
       // Profile Sheet
       signOut: '退出登录',
       signOutConfirmation: '您确定要退出登录吗？',
@@ -3534,7 +3579,7 @@ export const l10n = {
     },
     camera: {
       permissionTitle: '需要摄像头权限',
-      permissionMessage: 'PocketPal需要访问摄像头来分析图像',
+      permissionMessage: 'GPUNexus需要访问摄像头来分析图像',
       requestingPermission: '请求摄像头权限...',
       noDevice: '未找到摄像头设备',
       errorTitle: '摄像头错误',
@@ -3548,7 +3593,7 @@ export const l10n = {
     },
     video: {
       permissionTitle: '需要摄像头权限',
-      permissionMessage: 'PocketPal需要访问摄像头来分析视频',
+      permissionMessage: 'GPUNexus需要访问摄像头来分析视频',
       requestingPermission: '请求摄像头权限...',
       noDevice: '未找到摄像头设备',
       errorTitle: '摄像头错误',
@@ -3574,17 +3619,22 @@ export const l10n = {
       },
     },
     screenTitles: {
-      chat: '聊天',
-      models: '模型',
-      pals: 'Pals（实验性）',
-      benchmark: '基准测试',
-      settings: '设置',
-      appInfo: '关于',
-      testCompletion: '测试完成',
+      home: '首页',
+      chat: 'Chat',
+      pals: 'Pals',
+      models: 'Models',
+      benchmark: 'Benchmark',
+      settings: 'Settings',
+      appInfo: 'App Info',
+      profile: '个人中心',
+      shareMetering: '分享计量',
+      revenueBill: '收益账单',
+      myDevices: '我的设备',
     },
     chat: {
       conversationReset: '对话已重置！',
-      modelNotLoaded: '模型未加载，请初始化模型',
+      modelNotLoaded:
+        '模型未加载，请初始化模型',
       completionFailed: '生成失败: ',
       loadingModel: '加载模型中...',
       typeYourMessage: '输入消息',
@@ -3592,7 +3642,8 @@ export const l10n = {
       goToModels: '转到模型',
       readyToChat: '准备好聊天了吗？加载上次使用的模型',
       pleaseLoadModel: '在你聊天前，请先加载模型',
-      multimodalNotEnabled: '此模型未启用多模态功能，图片将显示但不会被AI处理',
+      multimodalNotEnabled:
+        '此模型未启用多模态功能，图片将显示但不会被AI处理',
       cannotSendWithoutModel: '请先加载模型',
     },
     benchmark: {

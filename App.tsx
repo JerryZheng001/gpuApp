@@ -36,6 +36,11 @@ import {
   SettingsScreen,
   BenchmarkScreen,
   AboutScreen,
+  HomeScreen,
+  ProfileScreen,
+  ShareMeteringScreen,
+  RevenueBillScreen,
+  MyDevicesScreen,
 
   // Dev tools screen. Only available in debug mode.
   DevToolsScreen,
@@ -75,6 +80,7 @@ const App = observer(() => {
                 <DeepLinkHandler />
                 <BottomSheetModalProvider>
                   <Drawer.Navigator
+                    initialRouteName={ROUTES.HOME}
                     screenOptions={{
                       headerLeft: () => <HeaderLeft />,
                       drawerStyle: {
@@ -87,6 +93,14 @@ const App = observer(() => {
                       headerTitleStyle: styles.headerTitle,
                     }}
                     drawerContent={props => <SidebarContent {...props} />}>
+                    <Drawer.Screen
+                      name={ROUTES.HOME}
+                      component={gestureHandlerRootHOC(HomeScreen)}
+                      options={{
+                        headerStyle: styles.headerWithoutDivider,
+                        title: currentL10n.screenTitles.home,
+                      }}
+                    />
                     <Drawer.Screen
                       name={ROUTES.CHAT}
                       component={gestureHandlerRootHOC(ChatScreen)}
@@ -134,6 +148,38 @@ const App = observer(() => {
                       options={{
                         headerStyle: styles.headerWithoutDivider,
                         title: currentL10n.screenTitles.appInfo,
+                      }}
+                    />
+                    <Drawer.Screen
+                      name={ROUTES.PROFILE}
+                      component={gestureHandlerRootHOC(ProfileScreen)}
+                      options={{
+                        headerStyle: styles.headerWithoutDivider,
+                        title: currentL10n.screenTitles.profile || 'Profile',
+                      }}
+                    />
+                    <Drawer.Screen
+                      name={ROUTES.SHARE_METERING}
+                      component={gestureHandlerRootHOC(ShareMeteringScreen)}
+                      options={{
+                        headerStyle: styles.headerWithoutDivider,
+                        title: (currentL10n.screenTitles as any).shareMetering || '分享计量',
+                      }}
+                    />
+                    <Drawer.Screen
+                      name={ROUTES.REVENUE_BILL}
+                      component={gestureHandlerRootHOC(RevenueBillScreen)}
+                      options={{
+                        headerStyle: styles.headerWithoutDivider,
+                        title: (currentL10n.screenTitles as any).revenueBill || '收益账单',
+                      }}
+                    />
+                    <Drawer.Screen
+                      name={ROUTES.MY_DEVICES}
+                      component={gestureHandlerRootHOC(MyDevicesScreen)}
+                      options={{
+                        headerStyle: styles.headerWithoutDivider,
+                        title: (currentL10n.screenTitles as any).myDevices || '我的设备',
                       }}
                     />
 
