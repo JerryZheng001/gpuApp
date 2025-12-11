@@ -97,11 +97,13 @@ export const createStyles = (theme: Theme, insets: EdgeInsets) =>
       padding: 16,
       paddingBottom: 12,
       gap: 8,
+      alignItems: 'center',
     },
     billHeaderText: {
       fontSize: 12,
       fontWeight: '600',
       color: theme.colors.onSurfaceVariant,
+      flexShrink: 1,
     },
     billRow: {
       flexDirection: 'row',
@@ -110,27 +112,32 @@ export const createStyles = (theme: Theme, insets: EdgeInsets) =>
       borderTopWidth: StyleSheet.hairlineWidth,
       borderTopColor: theme.colors.outlineVariant,
       gap: 8,
+      alignItems: 'center',
     },
     billCell: {
       fontSize: 14,
       color: theme.colors.onSurface,
+      flexShrink: 1,
     },
     billColPeriod: {
-      flex: 1.4,
-      minWidth: 140,
+      flex: 1.5,
+      minWidth: 120,
+      maxWidth: 160,
     },
     billColDevice: {
-      flex: 1,
-      minWidth: 100,
+      flex: 1.2,
+      minWidth: 90,
     },
     billColRevenue: {
-      flex: 0.8,
-      minWidth: 70,
+      flex: 0.9,
+      minWidth: 60,
+      maxWidth: 80,
       textAlign: 'right',
     },
     billColStatus: {
-      flex: 0.8,
-      minWidth: 70,
+      flex: 0.9,
+      minWidth: 65,
+      maxWidth: 75,
       alignItems: 'flex-end',
     },
     revenueText: {
@@ -141,10 +148,12 @@ export const createStyles = (theme: Theme, insets: EdgeInsets) =>
       paddingHorizontal: 8,
       paddingVertical: 4,
       borderRadius: 4,
+      maxWidth: '100%',
     },
     statusText: {
       fontSize: 12,
       fontWeight: '500',
+      flexShrink: 1,
     },
   });
 

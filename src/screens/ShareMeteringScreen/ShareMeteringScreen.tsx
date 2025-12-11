@@ -152,17 +152,34 @@ export const ShareMeteringScreen: React.FC = observer(() => {
           <Card.Content style={styles.tableContent}>
             {/* Table Header */}
             <View style={styles.tableHeader}>
-              <Text style={[styles.tableHeaderText, styles.colDate]}>日期</Text>
-              <Text style={[styles.tableHeaderText, styles.colDevice]}>
+              <Text
+                style={[styles.tableHeaderText, styles.colDate]}
+                numberOfLines={1}
+                ellipsizeMode="tail">
+                日期
+              </Text>
+              <Text
+                style={[styles.tableHeaderText, styles.colDevice]}
+                numberOfLines={1}
+                ellipsizeMode="tail">
                 设备名称
               </Text>
-              <Text style={[styles.tableHeaderText, styles.colDuration]}>
+              <Text
+                style={[styles.tableHeaderText, styles.colDuration]}
+                numberOfLines={1}
+                ellipsizeMode="tail">
                 分享时长
               </Text>
-              <Text style={[styles.tableHeaderText, styles.colCompute]}>
+              <Text
+                style={[styles.tableHeaderText, styles.colCompute]}
+                numberOfLines={1}
+                ellipsizeMode="tail">
                 算力占用
               </Text>
-              <Text style={[styles.tableHeaderText, styles.colRevenue]}>
+              <Text
+                style={[styles.tableHeaderText, styles.colRevenue]}
+                numberOfLines={1}
+                ellipsizeMode="tail">
                 收益
               </Text>
             </View>
@@ -173,16 +190,28 @@ export const ShareMeteringScreen: React.FC = observer(() => {
             {mockData.map((row, index) => (
               <View key={index}>
                 <View style={styles.tableRow}>
-                  <Text style={[styles.tableCell, styles.colDate]}>
+                  <Text
+                    style={[styles.tableCell, styles.colDate]}
+                    numberOfLines={1}
+                    ellipsizeMode="tail">
                     {row.date}
                   </Text>
-                  <Text style={[styles.tableCell, styles.colDevice]}>
+                  <Text
+                    style={[styles.tableCell, styles.colDevice]}
+                    numberOfLines={1}
+                    ellipsizeMode="tail">
                     {row.deviceName}
                   </Text>
-                  <Text style={[styles.tableCell, styles.colDuration]}>
+                  <Text
+                    style={[styles.tableCell, styles.colDuration]}
+                    numberOfLines={1}
+                    ellipsizeMode="tail">
                     {row.shareDuration}
                   </Text>
-                  <Text style={[styles.tableCell, styles.colCompute]}>
+                  <Text
+                    style={[styles.tableCell, styles.colCompute]}
+                    numberOfLines={1}
+                    ellipsizeMode="tail">
                     {row.computeOccupancy}
                   </Text>
                   <Text
@@ -190,7 +219,9 @@ export const ShareMeteringScreen: React.FC = observer(() => {
                       styles.tableCell,
                       styles.colRevenue,
                       styles.revenueText,
-                    ]}>
+                    ]}
+                    numberOfLines={1}
+                    ellipsizeMode="tail">
                     {row.revenue}
                   </Text>
                 </View>

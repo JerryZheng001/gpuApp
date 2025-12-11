@@ -50,11 +50,13 @@ export const createStyles = (theme: Theme, insets: EdgeInsets) =>
       padding: 16,
       paddingBottom: 12,
       gap: 8,
+      alignItems: 'center',
     },
     tableHeaderText: {
       fontSize: 12,
       fontWeight: '600',
       color: theme.colors.onSurfaceVariant,
+      flexShrink: 1,
     },
     tableDivider: {
       marginHorizontal: 16,
@@ -64,6 +66,7 @@ export const createStyles = (theme: Theme, insets: EdgeInsets) =>
       padding: 16,
       paddingVertical: 12,
       gap: 8,
+      alignItems: 'center',
     },
     rowDivider: {
       marginLeft: 16,
@@ -71,26 +74,30 @@ export const createStyles = (theme: Theme, insets: EdgeInsets) =>
     tableCell: {
       fontSize: 14,
       color: theme.colors.onSurface,
+      flexShrink: 1,
     },
     colDate: {
       flex: 1,
-      minWidth: 80,
+      minWidth: 70,
+      maxWidth: 90,
     },
     colDevice: {
-      flex: 1.2,
-      minWidth: 100,
+      flex: 1.5,
+      minWidth: 90,
     },
     colDuration: {
-      flex: 1,
-      minWidth: 80,
+      flex: 0.9,
+      minWidth: 70,
+      maxWidth: 80,
     },
     colCompute: {
-      flex: 1.2,
-      minWidth: 100,
+      flex: 1.3,
+      minWidth: 90,
     },
     colRevenue: {
-      flex: 1,
-      minWidth: 70,
+      flex: 0.8,
+      minWidth: 60,
+      maxWidth: 70,
       textAlign: 'right',
     },
     revenueText: {

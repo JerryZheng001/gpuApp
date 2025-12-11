@@ -48,7 +48,7 @@ export const HomeScreen: React.FC = observer(() => {
         {/* App Title */}
         <View style={styles.header}>
           <Text variant="headlineMedium" style={styles.title}>
-          GPUnexus
+          GPUNexus
           </Text>
           <Text variant="bodyLarge" style={styles.subtitle}>
             本地AI助手，让智能触手可及

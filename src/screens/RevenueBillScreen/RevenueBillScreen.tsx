@@ -224,16 +224,28 @@ export const RevenueBillScreen: React.FC = observer(() => {
           <Card.Content style={styles.billListContent}>
             {/* Table Header */}
             <View style={styles.billHeader}>
-              <Text style={[styles.billHeaderText, styles.billColPeriod]}>
+              <Text
+                style={[styles.billHeaderText, styles.billColPeriod]}
+                numberOfLines={1}
+                ellipsizeMode="tail">
                 账单周期
               </Text>
-              <Text style={[styles.billHeaderText, styles.billColDevice]}>
+              <Text
+                style={[styles.billHeaderText, styles.billColDevice]}
+                numberOfLines={1}
+                ellipsizeMode="tail">
                 设备名称
               </Text>
-              <Text style={[styles.billHeaderText, styles.billColRevenue]}>
+              <Text
+                style={[styles.billHeaderText, styles.billColRevenue]}
+                numberOfLines={1}
+                ellipsizeMode="tail">
                 收益
               </Text>
-              <Text style={[styles.billHeaderText, styles.billColStatus]}>
+              <Text
+                style={[styles.billHeaderText, styles.billColStatus]}
+                numberOfLines={1}
+                ellipsizeMode="tail">
                 状态
               </Text>
             </View>
@@ -241,10 +253,16 @@ export const RevenueBillScreen: React.FC = observer(() => {
             {/* Bill Rows */}
             {mockBills.map((bill, index) => (
               <View key={index} style={styles.billRow}>
-                <Text style={[styles.billCell, styles.billColPeriod]}>
+                <Text
+                  style={[styles.billCell, styles.billColPeriod]}
+                  numberOfLines={2}
+                  ellipsizeMode="tail">
                   {bill.period}
                 </Text>
-                <Text style={[styles.billCell, styles.billColDevice]}>
+                <Text
+                  style={[styles.billCell, styles.billColDevice]}
+                  numberOfLines={1}
+                  ellipsizeMode="tail">
                   {bill.deviceName}
                 </Text>
                 <Text
@@ -252,7 +270,9 @@ export const RevenueBillScreen: React.FC = observer(() => {
                     styles.billCell,
                     styles.billColRevenue,
                     styles.revenueText,
-                  ]}>
+                  ]}
+                  numberOfLines={1}
+                  ellipsizeMode="tail">
                   {bill.revenue}
                 </Text>
                 <View style={styles.billColStatus}>
@@ -265,7 +285,9 @@ export const RevenueBillScreen: React.FC = observer(() => {
                       style={[
                         styles.statusText,
                         {color: bill.statusColor},
-                      ]}>
+                      ]}
+                      numberOfLines={1}
+                      ellipsizeMode="tail">
                       {bill.status}
                     </Text>
                   </View>

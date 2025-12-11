@@ -1,5 +1,5 @@
 {
-  "name": "GPUnexus",
+  "name": "GPUNexus",
   "version": "1.11.8",
   "private": true,
   "scripts": {
@@ -22,7 +22,6 @@
     "start:reset": "react-native start --reset-cache",
     "setup:android": "bash scripts/setup-device-port-forward.sh",
     "android:device": "bash scripts/setup-device-port-forward.sh && react-native run-android",
-    "android:install": "bash scripts/setup-device-port-forward.sh && react-native run-android",
     "test": "jest"
   },
   "dependencies": {
