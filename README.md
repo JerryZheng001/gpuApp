@@ -1,5 +1,6 @@
 # GPUNexus AI 📱🚀
 
+
 GPUNexus AI is a pocket-sized AI assistant powered by small language models (SLMs) that run directly on your phone. Designed for both iOS and Android, GPUNexus AI lets you interact with various SLMs without the need for an internet connection. Your privacy is fully protected as all processing happens entirely on-device — your conversations, prompts, and data never leave your phone or get stored on external servers.
 
 > **Note on Privacy**: The only data that may leave your device is what you explicitly choose to share: benchmark results (if you opt to contribute to the leaderboard) and any feedback you voluntarily submit through the app.

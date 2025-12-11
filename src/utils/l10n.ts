@@ -2760,8 +2760,8 @@ export const l10n = {
         keepBoth: '保留两者',
       },
       labels: {
-        localModel: '本地',
-        hfModel: 'HF',
+        localModel: '本地模型',
+        hfModel: '远程模型',
         unknownGroup: '未知',
         availableToUse: '可使用',
         availableToDownload: '可下载',
