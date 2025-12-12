@@ -83,6 +83,9 @@ class ModelStore {
 
   activeModelId: string | undefined = undefined;
 
+  // Track which model is currently being shared (device sharing)
+  sharedModelId: string | undefined = undefined;
+
   // Flag to track if multimodal is currently active
   isMultimodalActive: boolean = false;
   activeProjectionModelId: string | undefined = undefined;
@@ -121,6 +124,7 @@ class ModelStore {
         'lastUsedModelId',
         'wasAutoReleased',
         'lastAutoReleasedModelId',
+        'sharedModelId',
       ],
       storage: AsyncStorage,
     }).then(async () => {
@@ -2238,6 +2242,28 @@ class ModelStore {
     }
     return this.availableModels.some(m => m.id === modelId);
   };
+
+  setSharedModel = (modelId: string | undefined) => {
+    runInAction(() => {
+      this.sharedModelId = modelId;
+    });
+  };
+
+  toggleModelShare = (modelId: string) => {
+    runInAction(() => {
+      if (this.sharedModelId === modelId) {
+        // If this model is currently shared, unshare it
+        this.sharedModelId = undefined;
+      } else {
+        // Share this model and unshare any other model
+        this.sharedModelId = modelId;
+      }
+    });
+  };
+
+  get isCurrentModelShared(): boolean {
+    return this.sharedModelId === this.activeModelId;
+  }
 
   // /**
   //  * Gets localized strings based on the current language from uiStore

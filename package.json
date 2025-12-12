@@ -1,11 +1,11 @@
 {
-  "name": "PocketPal",
+  "name": "GPUNexus",
   "version": "1.11.8",
   "private": true,
   "scripts": {
     "prepare": "husky",
     "postinstall": "patch-package",
-    "android": "react-native run-android",
+    "android": "bash scripts/check-and-setup-port-forward.sh && react-native run-android",
     "build:android": "cd android && ./gradlew assembleDebug && cd ..",
     "build:android:release": "cd android && ./gradlew bundleRelease && cd ..",
     "ios": "react-native run-ios --simulator=\"iPhone 16 Pro\"",
@@ -20,6 +20,8 @@
     "format": "prettier --write \"**/*.{js,ts,tsx,json,md}\"",
     "start": "react-native start",
     "start:reset": "react-native start --reset-cache",
+    "setup:android": "bash scripts/setup-device-port-forward.sh",
+    "android:device": "bash scripts/setup-device-port-forward.sh && react-native run-android",
     "test": "jest"
   },
   "dependencies": {

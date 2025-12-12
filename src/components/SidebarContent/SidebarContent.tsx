@@ -13,14 +13,17 @@ import {createStyles} from './styles';
 import {chatSessionStore, SessionMetaData} from '../../store';
 import {Menu, RenameModal} from '..';
 import {
-  BenchmarkIcon,
   ChatIcon,
-  EditIcon,
-  ModelIcon,
   PalIcon,
+  ModelIcon,
+  BenchmarkIcon,
   SettingsIcon,
-  TrashIcon,
   AppInfoIcon,
+  EditIcon,
+  TrashIcon,
+  UserCircleIcon,
+  CpuChipIcon,
+  ShoppingCartIcon,
 } from '../../assets/icons';
 import {L10nContext} from '../../utils';
 import {ROUTES} from '../../utils/navigationConstants';
@@ -87,6 +90,12 @@ export const SidebarContent: React.FC<DrawerContentComponentProps> = observer(
           <DrawerContentScrollView {...props}>
             <Drawer.Section showDivider={false}>
               <Drawer.Item
+                label={l10n.components.sidebarContent.menuItems.home || '首页'}
+                icon={() => <AppInfoIcon stroke={theme.colors.primary} />}
+                onPress={() => props.navigation.navigate(ROUTES.HOME)}
+                style={styles.menuDrawerItem}
+              />
+              <Drawer.Item
                 label={l10n.components.sidebarContent.menuItems.chat}
                 icon={() => <ChatIcon stroke={theme.colors.primary} />}
                 onPress={() => props.navigation.navigate(ROUTES.CHAT)}
@@ -104,35 +113,58 @@ export const SidebarContent: React.FC<DrawerContentComponentProps> = observer(
                 onPress={() => props.navigation.navigate(ROUTES.MODELS)}
                 style={styles.menuDrawerItem}
               />
-              <Drawer.Item
+              {/* <Drawer.Item
                 label={l10n.components.sidebarContent.menuItems.benchmark}
                 icon={() => <BenchmarkIcon stroke={theme.colors.primary} />}
                 onPress={() => props.navigation.navigate(ROUTES.BENCHMARK)}
                 style={styles.menuDrawerItem}
-              />
+              /> */}
               <Drawer.Item
-                label={l10n.components.sidebarContent.menuItems.settings}
+                label={l10n.components.sidebarContent.menuItems.shareMetering || '分享计量'}
                 icon={() => (
-                  <SettingsIcon
+                  <CpuChipIcon
                     width={24}
                     height={24}
                     stroke={theme.colors.primary}
                   />
                 )}
-                onPress={() => props.navigation.navigate(ROUTES.SETTINGS)}
+                onPress={() => props.navigation.navigate(ROUTES.SHARE_METERING)}
                 style={styles.menuDrawerItem}
               />
-
               <Drawer.Item
-                label={l10n.components.sidebarContent.menuItems.appInfo}
+                label={l10n.components.sidebarContent.menuItems.revenueBill || '收益账单'}
                 icon={() => (
-                  <AppInfoIcon
+                  <ShoppingCartIcon
                     width={24}
                     height={24}
                     stroke={theme.colors.primary}
                   />
                 )}
-                onPress={() => props.navigation.navigate(ROUTES.APP_INFO)}
+                onPress={() => props.navigation.navigate(ROUTES.REVENUE_BILL)}
+                style={styles.menuDrawerItem}
+              />
+              <Drawer.Item
+                label={(l10n.components.sidebarContent.menuItems as any).myDevices || '我的设备'}
+                icon={() => (
+                  <CpuChipIcon
+                    width={24}
+                    height={24}
+                    stroke={theme.colors.primary}
+                  />
+                )}
+                onPress={() => props.navigation.navigate(ROUTES.MY_DEVICES)}
+                style={styles.menuDrawerItem}
+              />
+              <Drawer.Item
+                label={l10n.components.sidebarContent.menuItems.profile || 'Profile'}
+                icon={() => (
+                  <UserCircleIcon
+                    width={24}
+                    height={24}
+                    stroke={theme.colors.primary}
+                  />
+                )}
+                onPress={() => props.navigation.navigate(ROUTES.PROFILE)}
                 style={styles.menuDrawerItem}
               />
 

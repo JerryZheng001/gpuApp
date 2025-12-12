@@ -57,6 +57,7 @@ import {
   XIcon,
   ChevronSelectorVerticalIcon,
   ChevronSelectorExpandedVerticalIcon,
+  ShareIcon,
 } from '../../../assets/icons';
 
 type ChatScreenNavigationProp = DrawerNavigationProp<RootDrawerParamList>;
@@ -254,6 +255,15 @@ export const ModelCard: React.FC<ModelCardProps> = observer(
       [model.id],
     );
 
+    const handleShare = useCallback(() => {
+      // Toggle share status for this model
+      modelStore.toggleModelShare(model.id);
+      
+      // Show feedback
+      const isNowShared = modelStore.sharedModelId === model.id;
+      setSnackbarVisible(true);
+    }, [model.id]);
+
     // Helper function to get model type icon - updated sizes
     const getModelTypeIcon = () => {
       if (model.supportsMultimodal) {
@@ -415,6 +425,35 @@ export const ModelCard: React.FC<ModelCardProps> = observer(
       // Downloaded state - soft blue styling
       return (
         <View style={styles.actionButtonsRow}>
+          
+
+          {/* Share Button - Device model sharing with status indication */}
+          <Button
+            testID="share-button"
+            icon={() => (
+              <ShareIcon
+                width={16}
+                height={16}
+                stroke={modelStore.sharedModelId === model.id ? theme.colors.onPrimary : theme.colors.primary}
+              />
+            )}
+            mode={modelStore.sharedModelId === model.id ? "contained" : "outlined"}
+            onPress={handleShare}
+            style={[
+              styles.shareButton,
+              modelStore.sharedModelId === model.id
+                ? {
+                    backgroundColor: theme.colors.primary,
+                    borderColor: theme.colors.primary,
+                  }
+                : {
+                    backgroundColor: theme.colors.surface,
+                    borderColor: theme.colors.primary,
+                  },
+            ]}
+            textColor={modelStore.sharedModelId === model.id ? theme.colors.onPrimary : theme.colors.primary}>
+            {modelStore.sharedModelId === model.id ? "已分享" : "分享"}
+          </Button>
           {renderModelLoadButton()}
 
           <TouchableOpacity
@@ -824,22 +863,21 @@ export const ModelCard: React.FC<ModelCardProps> = observer(
             )}
           </View>
         </Card>
-        {/* Snackbar to show full memory warning */}
+        {/* Snackbar to show sharing status */}
         <Snackbar
-          testID="memory-warning-snackbar"
+          testID="sharing-status-snackbar"
           visible={snackbarVisible}
           onDismiss={() => setSnackbarVisible(false)}
-          duration={Snackbar.DURATION_MEDIUM}
+          duration={Snackbar.DURATION_SHORT}
           action={{
             label: l10n.common.dismiss,
             onPress: () => {
               setSnackbarVisible(false);
             },
           }}>
-          {memoryWarning ||
-            multimodalWarning ||
-            (hasProjectionModelWarning &&
-              l10n.models.multimodal.projectionMissingWarning)}
+          {modelStore.sharedModelId === model.id
+            ? "模型已设置为设备分享"
+            : "模型分享已取消"}
         </Snackbar>
       </>
     );

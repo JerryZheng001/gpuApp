@@ -153,23 +153,7 @@ export const HeaderRight: React.FC = observer(() => {
         }}
       />
       {/* Share functionality toggle - only show when model is selected */}
-      {modelStore.activeModel && (
-        <View style={styles.shareToggleContainer}>
-          {/* <ShareIcon 
-            stroke={uiStore.shareEnabled ? theme.colors.primary : theme.colors.onSurfaceDisabled} 
-            width={20} 
-            height={20} 
-          /> */}
-          分享
-          <Switch
-            value={uiStore.shareEnabled}
-            onValueChange={() => uiStore.toggleShareEnabled()}
-            color={theme.colors.primary}
-            style={styles.shareSwitch}
-          />
-          
-        </View>
-      )}
+
       <Menu
         visible={menuVisible}
         onDismiss={closeMenu}

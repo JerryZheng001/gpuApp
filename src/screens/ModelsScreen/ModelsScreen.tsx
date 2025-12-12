@@ -1,5 +1,12 @@
 import React, {useState, useContext, useEffect} from 'react';
-import {FlatList, RefreshControl, Platform, Alert, View} from 'react-native';
+import {
+  FlatList,
+  RefreshControl,
+  Platform,
+  Alert,
+  View,
+  Text,
+} from 'react-native';
 
 import {reaction, computed} from 'mobx';
 import {v4 as uuidv4} from 'uuid';
@@ -7,7 +14,7 @@ import 'react-native-get-random-values';
 import {observer} from 'mobx-react-lite';
 import * as RNFS from '@dr.pogodin/react-native-fs';
 import {pick, types} from '@react-native-documents/picker';
-import {Portal} from 'react-native-paper';
+import {Portal, SegmentedButtons} from 'react-native-paper';
 
 import {useTheme} from '../../hooks';
 
@@ -35,6 +42,7 @@ export const ModelsScreen: React.FC = observer(() => {
   const [_, setTrigger] = useState<boolean>(false);
   const [selectedModel, setSelectedModel] = useState<Model | undefined>();
   const [settingsVisible, setSettingsVisible] = useState(false);
+  const [activeTab, setActiveTab] = useState<'local' | 'remote'>('local');
 
   // Centralized error state tracking - derive directly from MobX stores
   const [activeError, setActiveError] = useState<ErrorState | null>(null);
@@ -192,11 +200,11 @@ export const ModelsScreen: React.FC = observer(() => {
   const activeModelId = modelStore.activeModel?.id;
   const models = modelStore.displayModels;
 
-  // useMemo uses shallow comaprison for dependencies,
-  // so we use computed instead for deep comparison
-  // (model state changes not-downloaded -> downloaded)
-  const filteredAndSortedModels = computed(() => {
+  // Filter and sort models based on active tab and filters
+  // Use computed for MobX reactivity, but filter by activeTab outside
+  const baseFilteredModels = computed(() => {
     let result = models;
+    
     if (filters.includes('downloaded')) {
       result = result.filter(model => model.isDownloaded);
     }
@@ -216,6 +224,20 @@ export const ModelsScreen: React.FC = observer(() => {
     }
     return result;
   }).get();
+
+  // Filter by active tab (React state, so use regular filter)
+  const filteredAndSortedModels = React.useMemo(() => {
+    if (activeTab === 'local') {
+      // Show local and preset models
+      return baseFilteredModels.filter(
+        model =>
+          model.origin === ModelOrigin.LOCAL || model.origin === ModelOrigin.PRESET,
+      );
+    } else {
+      // Show remote (HF) models
+      return baseFilteredModels.filter(model => model.origin === ModelOrigin.HF);
+    }
+  }, [activeTab, baseFilteredModels]);
 
   const getGroupDisplayName = (key: string) => {
     switch (key) {
@@ -306,6 +328,10 @@ export const ModelsScreen: React.FC = observer(() => {
     }))
     .filter(group => group.items.length > 0);
 
+  // Show empty state for remote models tab if no models found
+  const showEmptyState =
+    activeTab === 'remote' && flatListModels.length === 0;
+
   return (
     <View style={styles.container}>
       {/* Show Error Snackbar only if no dialog is visible */}
@@ -317,23 +343,51 @@ export const ModelsScreen: React.FC = observer(() => {
         />
       )}
 
-      <FlatList
-        testID="flat-list"
-        keyboardDismissMode="on-drag"
-        keyboardShouldPersistTaps="handled"
-        contentContainerStyle={styles.listContainer}
-        data={flatListModels}
-        keyExtractor={item => item.type}
-        extraData={activeModelId}
-        renderItem={renderGroupHeader}
-        refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={onRefresh}
-            colors={[theme.colors.primary]}
-          />
-        }
-      />
+      {/* Tab Switcher */}
+      <View style={styles.tabContainer}>
+        <SegmentedButtons
+          value={activeTab}
+          onValueChange={value => setActiveTab(value as 'local' | 'remote')}
+          buttons={[
+            {
+              value: 'local',
+              label: l10n.models.labels.localModel || '本地模型',
+            },
+            {
+              value: 'remote',
+              label: l10n.models.labels.hfModel || '远程模型',
+            },
+          ]}
+          style={styles.segmentedButtons}
+        />
+      </View>
+
+      {showEmptyState ? (
+        <View style={styles.emptyStateContainer}>
+          <Text style={styles.emptyStateText}>
+            {l10n.models.labels.useAddButtonForMore ||
+              'Use + button to find more models'}
+          </Text>
+        </View>
+      ) : (
+        <FlatList
+          testID="flat-list"
+          keyboardDismissMode="on-drag"
+          keyboardShouldPersistTaps="handled"
+          contentContainerStyle={styles.listContainer}
+          data={flatListModels}
+          keyExtractor={item => item.type}
+          extraData={activeModelId}
+          renderItem={renderGroupHeader}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              colors={[theme.colors.primary]}
+            />
+          }
+        />
+      )}
 
       {/* DownloadErrorDialog with Portal for better visibility */}
       <Portal>

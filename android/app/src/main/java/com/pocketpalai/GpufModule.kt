@@ -4,6 +4,7 @@ import com.facebook.react.bridge.Promise
 import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.ReactContextBaseJavaModule
 import com.facebook.react.bridge.ReactMethod
+import com.gpuf.c.GPUEngine
 
 class GpufModule(reactContext: ReactApplicationContext) :
     ReactContextBaseJavaModule(reactContext) {
@@ -13,7 +14,7 @@ class GpufModule(reactContext: ReactApplicationContext) :
   @ReactMethod
   fun init(promise: Promise) {
     try {
-      val result = GpufNative.init()
+      val result = GPUEngine.gpuf_init()
       promise.resolve(result)
     } catch (e: Exception) {
       promise.reject("GPUF_INIT_ERROR", e.message, e)
@@ -23,7 +24,7 @@ class GpufModule(reactContext: ReactApplicationContext) :
   @ReactMethod
   fun getVersion(promise: Promise) {
     try {
-      val version = GpufNative.getVersion()
+      val version = GPUEngine.getVersion()
       promise.resolve(version)
     } catch (e: Exception) {
       promise.reject("GPUF_VERSION_ERROR", e.message, e)
@@ -31,32 +32,62 @@ class GpufModule(reactContext: ReactApplicationContext) :
   }
 
   @ReactMethod
-  fun llmInit(modelPath: String, ctxSize: Int, gpuLayers: Int, promise: Promise) {
+  fun getSystemInfo(promise: Promise) {
     try {
-      val result = GpufNative.llmInit(modelPath, ctxSize, gpuLayers)
-      promise.resolve(result)
+      val info = GPUEngine.getSystemInfo()
+      promise.resolve(info)
     } catch (e: Exception) {
-      promise.reject("GPUF_LLM_INIT_ERROR", e.message, e)
+      promise.reject("GPUF_SYSTEM_INFO_ERROR", e.message, e)
     }
   }
 
   @ReactMethod
-  fun llmGenerate(prompt: String, maxTokens: Double, promise: Promise) {
+  fun initialize(promise: Promise) {
     try {
-      val result = GpufNative.llmGenerate(prompt, maxTokens.toLong())
+      val result = GPUEngine.initialize()
       promise.resolve(result)
     } catch (e: Exception) {
-      promise.reject("GPUF_LLM_GENERATE_ERROR", e.message, e)
+      promise.reject("GPUF_INITIALIZE_ERROR", e.message, e)
     }
   }
 
   @ReactMethod
-  fun getLastError(promise: Promise) {
+  fun loadModel(modelPath: String, promise: Promise) {
     try {
-      val err = GpufNative.getLastError()
-      promise.resolve(err)
+      val result = GPUEngine.loadModel(modelPath)
+      promise.resolve(result)
     } catch (e: Exception) {
-      promise.reject("GPUF_LAST_ERROR", e.message, e)
+      promise.reject("GPUF_LOAD_MODEL_ERROR", e.message, e)
+    }
+  }
+
+  @ReactMethod
+  fun createContext(modelPtr: Double, promise: Promise) {
+    try {
+      val result = GPUEngine.createContext(modelPtr.toLong())
+      promise.resolve(result)
+    } catch (e: Exception) {
+      promise.reject("GPUF_CREATE_CONTEXT_ERROR", e.message, e)
+    }
+  }
+
+  @ReactMethod
+  fun generate(modelPtr: Double, contextPtr: Double, prompt: String, maxTokens: Int, promise: Promise) {
+    try {
+      val result = GPUEngine.generate(modelPtr.toLong(), contextPtr.toLong(), prompt, maxTokens)
+      promise.resolve(result)
+    } catch (e: Exception) {
+      promise.reject("GPUF_GENERATE_ERROR", e.message, e)
+    }
+  }
+
+  @ReactMethod
+  fun cleanup(promise: Promise) {
+    try {
+      val result = GPUEngine.cleanup()
+      promise.resolve(result)
+    } catch (e: Exception) {
+      promise.reject("GPUF_CLEANUP_ERROR", e.message, e)
     }
   }
 }

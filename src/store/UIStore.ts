@@ -30,8 +30,8 @@ export class UIStore {
   //colorScheme = useColorScheme();
   colorScheme: 'light' | 'dark' = Appearance.getColorScheme() ?? 'light';
 
-  // Current selected language (default to English)
-  _language: AvailableLanguage = 'en';
+  // Current selected language (default to Chinese)
+  _language: AvailableLanguage = 'zh';
 
   // List of supported languages
   supportedLanguages: AvailableLanguage[] = ['en', 'ja', 'zh'];

@@ -175,6 +175,21 @@ export const createStyles = (theme: Theme) =>
       borderWidth: 1,
       height: 40,
     },
+    shareButton: {
+      borderRadius: 16, // rounded-2xl
+      borderWidth: 1,
+      height: 40,
+      paddingHorizontal: 4,
+      // Add shadow for prominence
+      shadowColor: '#000',
+      shadowOffset: {
+        width: 0,
+        height: 2,
+      },
+      shadowOpacity: 0.25,
+      shadowRadius: 3.84,
+      elevation: 5,
+    },
     iconButton: {
       padding: 10, // p-2.5 equivalent
       borderRadius: 16, // rounded-2xl
