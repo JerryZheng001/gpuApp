@@ -48,6 +48,7 @@ import {
 } from '../../utils';
 import {checkGpuSupport} from '../../utils/deviceCapabilities';
 import {exportLegacyChatSessions} from '../../utils/exportUtils';
+import {mobileAuthService} from '../../services';
 
 // Language display names in their native form
 const languageNames: Record<AvailableLanguage, string> = {
@@ -1070,6 +1071,36 @@ export const SettingsScreen: React.FC = observer(() => {
               </View>
             </Card.Content>
           </Card>
+
+          {/* 退出登录 - 仅在已登录时显示 */}
+          {mobileAuthService.isAuthenticated && (
+            <Card elevation={0} style={styles.card}>
+              <Card.Content>
+                <Button
+                  mode="outlined"
+                  style={{borderColor: '#eee'}}
+                  onPress={() => {
+                    Alert.alert(
+                      '退出登录',
+                      '确定要退出当前账号吗？',
+                      [
+                        {text: '取消', style: 'cancel'},
+                        {
+                          text: '退出',
+                          style: 'destructive',
+                          onPress: () => {
+                            mobileAuthService.signOut();
+                            Alert.alert('提示', '已退出登录');
+                          },
+                        },
+                      ],
+                    );
+                  }}>
+                  退出登录
+                </Button>
+              </Card.Content>
+            </Card>
+          )}
         </ScrollView>
       </TouchableWithoutFeedback>
       <HFTokenSheet

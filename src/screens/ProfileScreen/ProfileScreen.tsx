@@ -1,4 +1,4 @@
-import React, {useContext, useState} from 'react';
+import React, {useContext} from 'react';
 import {
   View,
   ScrollView,
@@ -6,7 +6,7 @@ import {
   Image,
   Alert,
 } from 'react-native';
-import {Text, Card, Button} from 'react-native-paper';
+import {Text, Card} from 'react-native-paper';
 import {SafeAreaView, useSafeAreaInsets} from 'react-native-safe-area-context';
 import {observer} from 'mobx-react';
 import {useNavigation} from '@react-navigation/native';
@@ -20,10 +20,18 @@ import {RootDrawerParamList} from '../../utils/types';
 import {
   UserCircleIcon,
   ChevronRightIcon,
-  EditIcon,
 } from '../../assets/icons';
+import {mobileAuthService} from '../../services';
 
 type ProfileScreenNavigationProp = DrawerNavigationProp<RootDrawerParamList>;
+
+// 隐藏手机号中间四位
+const maskPhoneNumber = (phone: string): string => {
+  if (!phone || phone.length < 11) {
+    return phone;
+  }
+  return phone.slice(0, 3) + '****' + phone.slice(7);
+};
 
 export const ProfileScreen: React.FC = observer(() => {
   const theme = useTheme();
@@ -32,14 +40,27 @@ export const ProfileScreen: React.FC = observer(() => {
   const l10n = useContext(L10nContext);
   const navigation = useNavigation<ProfileScreenNavigationProp>();
 
-  // Mock user data - replace with actual user data from store
-  const [userData] = useState({
-    username: '算力用户123',
-    phone: '138****1234',
-    avatar: null, // Can be replaced with actual avatar URL
-  });
+  // 获取用户登录状态和信息
+  const isAuthenticated = mobileAuthService.isAuthenticated;
+  const user = mobileAuthService.user;
+
+  // 用户数据
+  const userData = {
+    username: isAuthenticated
+      ? user?.display_name || user?.username || '用户'
+      : '未登录',
+    phone: isAuthenticated
+      ? maskPhoneNumber(user?.phone_number || '')
+      : '请登录',
+    avatar: null,
+  };
 
   const handleEditProfile = () => {
+    if (!isAuthenticated) {
+      // 未登录时提示登录
+      Alert.alert('提示', '请先登录');
+      return;
+    }
     // TODO: Navigate to edit profile screen
     const profile = (l10n as any).profile;
     Alert.alert(
@@ -75,17 +96,6 @@ export const ProfileScreen: React.FC = observer(() => {
       key: 'membership',
       icon: '👑',
       label: profile?.menuItems?.membership || '会员中心',
-    },
-    // {
-    //   key: 'devices',
-    //   icon: '💾',
-    //   label: profile?.menuItems?.devices || 'My Devices',
-    // },
-  
-    {
-      key: 'settings',
-      icon: '⚙️',
-      label: profile?.menuItems?.systemSettings || '系统设置',
     },
     {
       key: 'appInfo',

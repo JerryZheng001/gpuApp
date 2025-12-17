@@ -3,6 +3,7 @@ import {TouchableOpacity, View, Alert} from 'react-native';
 import {observer} from 'mobx-react';
 import {Divider, Drawer, Text} from 'react-native-paper';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
+import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {
   DrawerContentScrollView,
   DrawerContentComponentProps,
@@ -16,7 +17,6 @@ import {
   ChatIcon,
   PalIcon,
   ModelIcon,
-  BenchmarkIcon,
   SettingsIcon,
   AppInfoIcon,
   EditIcon,
@@ -28,9 +28,6 @@ import {
 import {L10nContext} from '../../utils';
 import {ROUTES} from '../../utils/navigationConstants';
 
-// Check if app is in debug mode
-const isDebugMode = __DEV__;
-
 export const SidebarContent: React.FC<DrawerContentComponentProps> = observer(
   props => {
     const [menuVisible, setMenuVisible] = useState<string | null>(null);
@@ -39,6 +36,7 @@ export const SidebarContent: React.FC<DrawerContentComponentProps> = observer(
       useState<SessionMetaData | null>(null);
 
     const theme = useTheme();
+    const insets = useSafeAreaInsets();
     const styles = createStyles(theme);
     const l10n = useContext(L10nContext);
 
@@ -167,22 +165,6 @@ export const SidebarContent: React.FC<DrawerContentComponentProps> = observer(
                 onPress={() => props.navigation.navigate(ROUTES.PROFILE)}
                 style={styles.menuDrawerItem}
               />
-
-              {/* Only show Dev Tools in debug mode */}
-              {isDebugMode && (
-                <Drawer.Item
-                  label="Dev Tools"
-                  icon={() => (
-                    <SettingsIcon
-                      width={24}
-                      height={24}
-                      stroke={theme.colors.primary}
-                    />
-                  )}
-                  onPress={() => props.navigation.navigate(ROUTES.DEV_TOOLS)}
-                  style={styles.menuDrawerItem}
-                />
-              )}
             </Drawer.Section>
             <Divider style={styles.divider} />
             {/* Loop over the session groups and render them */}
@@ -245,6 +227,23 @@ export const SidebarContent: React.FC<DrawerContentComponentProps> = observer(
               ),
             )}
           </DrawerContentScrollView>
+
+          {/* 底部固定设置区域 */}
+          <View style={[styles.bottomSection, {paddingBottom: insets.bottom + 8}]}>
+            <Divider style={styles.divider} />
+            <Drawer.Item
+              label={l10n.components.sidebarContent.menuItems.settings || '设置'}
+              icon={() => (
+                <SettingsIcon
+                  width={24}
+                  height={24}
+                  stroke={theme.colors.primary}
+                />
+              )}
+              onPress={() => props.navigation.navigate(ROUTES.SETTINGS)}
+              style={styles.menuDrawerItem}
+            />
+          </View>
         </View>
         <RenameModal
           visible={sessionToRename !== null}

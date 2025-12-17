@@ -5,6 +5,7 @@ import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.ReactContextBaseJavaModule
 import com.facebook.react.bridge.ReactMethod
 import com.gpuf.c.GPUEngine
+import com.gpuf.c.RemoteWorker
 
 class GpufModule(reactContext: ReactApplicationContext) :
     ReactContextBaseJavaModule(reactContext) {
@@ -74,7 +75,8 @@ class GpufModule(reactContext: ReactApplicationContext) :
   @ReactMethod
   fun generate(modelPtr: Double, contextPtr: Double, prompt: String, maxTokens: Int, promise: Promise) {
     try {
-      val result = GPUEngine.generate(modelPtr.toLong(), contextPtr.toLong(), prompt, maxTokens)
+      // Pass null for outputBuffer as it's optional in the new API
+      val result = GPUEngine.generate(modelPtr.toLong(), contextPtr.toLong(), prompt, maxTokens, null)
       promise.resolve(result)
     } catch (e: Exception) {
       promise.reject("GPUF_GENERATE_ERROR", e.message, e)
@@ -88,6 +90,63 @@ class GpufModule(reactContext: ReactApplicationContext) :
       promise.resolve(result)
     } catch (e: Exception) {
       promise.reject("GPUF_CLEANUP_ERROR", e.message, e)
+    }
+  }
+
+  @ReactMethod
+  fun setRemoteWorkerModel(modelPath: String, promise: Promise) {
+    try {
+      val result = RemoteWorker.setRemoteWorkerModel(modelPath)
+      promise.resolve(result)
+    } catch (e: Exception) {
+      promise.reject("REMOTE_WORKER_SET_MODEL_ERROR", e.message, e)
+    }
+  }
+
+  @ReactMethod
+  fun startRemoteWorker(
+    serverAddr: String,
+    controlPort: Int,
+    proxyPort: Int,
+    workerType: String,
+    clientId: String,
+    promise: Promise
+  ) {
+    try {
+      val result = RemoteWorker.startRemoteWorker(serverAddr, controlPort, proxyPort, workerType, clientId)
+      promise.resolve(result)
+    } catch (e: Exception) {
+      promise.reject("REMOTE_WORKER_START_ERROR", e.message, e)
+    }
+  }
+
+  @ReactMethod
+  fun startRemoteWorkerTasks(promise: Promise) {
+    try {
+      val result = RemoteWorker.startRemoteWorkerTasks()
+      promise.resolve(result)
+    } catch (e: Exception) {
+      promise.reject("REMOTE_WORKER_START_TASKS_ERROR", e.message, e)
+    }
+  }
+
+  @ReactMethod
+  fun getRemoteWorkerStatus(promise: Promise) {
+    try {
+      val status = RemoteWorker.getRemoteWorkerStatus()
+      promise.resolve(status)
+    } catch (e: Exception) {
+      promise.reject("REMOTE_WORKER_STATUS_ERROR", e.message, e)
+    }
+  }
+
+  @ReactMethod
+  fun stopRemoteWorker(promise: Promise) {
+    try {
+      val result = RemoteWorker.stopRemoteWorker()
+      promise.resolve(result)
+    } catch (e: Exception) {
+      promise.reject("REMOTE_WORKER_STOP_ERROR", e.message, e)
     }
   }
 }

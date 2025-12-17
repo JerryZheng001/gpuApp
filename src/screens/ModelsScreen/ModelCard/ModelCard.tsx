@@ -46,6 +46,7 @@ import {
   getModelSkills,
   formatNumber,
 } from '../../../utils';
+import GpufModule from '../../../services/GpufModule';
 
 import {
   LinkExternalIcon,
@@ -86,6 +87,7 @@ export const ModelCard: React.FC<ModelCardProps> = observer(
     const navigation = useNavigation<ChatScreenNavigationProp>();
 
     const [snackbarVisible, setSnackbarVisible] = useState(false); // Snackbar visibility
+    const [snackbarMessage, setSnackbarMessage] = useState<string>(''); // Snackbar message
     const [integrityError, setIntegrityError] = useState<string | null>(null);
     const [isExpanded, setIsExpanded] = useState(false);
 
@@ -255,14 +257,150 @@ export const ModelCard: React.FC<ModelCardProps> = observer(
       [model.id],
     );
 
-    const handleShare = useCallback(() => {
-      // Toggle share status for this model
-      modelStore.toggleModelShare(model.id);
+    const handleShare = useCallback(async () => {
+      console.log('=== handleShare 函数被调用 ===');
+      console.log('Model ID:', model.id);
+      console.log('Model isDownloaded:', model.isDownloaded);
       
-      // Show feedback
-      const isNowShared = modelStore.sharedModelId === model.id;
-      setSnackbarVisible(true);
-    }, [model.id]);
+      // 检查当前是否已分享
+      const isCurrentlyShared = modelStore.sharedModelId === model.id;
+      console.log('当前是否已分享:', isCurrentlyShared);
+      
+      try {
+        if (isCurrentlyShared) {
+          // 如果已分享，则停止分享
+          console.log('模型已分享，准备停止远程工作器...');
+          const stopResult = await GpufModule.stopRemoteWorker();
+          console.log('stopRemoteWorker 返回结果:', stopResult);
+          
+          if (stopResult === 0) {
+            console.log('✅ Remote worker stopped successfully');
+            setSnackbarMessage('远程工作器已停止');
+          } else {
+            console.warn('❌ Failed to stop remote worker, result:', stopResult);
+            setSnackbarMessage(`停止远程工作器失败 (错误代码: ${stopResult})`);
+          }
+          
+          // 切换分享状态
+          modelStore.toggleModelShare(model.id);
+          console.log('分享状态已切换，当前 sharedModelId:', modelStore.sharedModelId);
+          setSnackbarVisible(true);
+        } else {
+          // 如果未分享，则启动分享流程
+          if (model.isDownloaded) {
+            console.log('模型已下载，准备获取模型路径...');
+            const modelPath = await modelStore.getModelFullPath(model);
+            console.log('模型路径:', modelPath);
+            console.log('准备调用 setRemoteWorkerModel...');
+            const result = await GpufModule.setRemoteWorkerModel(modelPath);
+            console.log('setRemoteWorkerModel 返回结果:', result);
+            // result: 0 = success, -1 = failure
+            if (result === 0) {
+              console.log('✅ Remote worker model set successfully');
+              
+              // 先检查工作器状态
+              const currentStatus = await GpufModule.getRemoteWorkerStatus();
+              console.log('当前工作器状态:', currentStatus);
+              
+              // 如果工作器已经在运行，直接启动任务
+              if (currentStatus && currentStatus.includes('running')) {
+                console.log('工作器已在运行，直接启动任务...');
+                const tasksResult = await GpufModule.startRemoteWorkerTasks();
+                console.log('startRemoteWorkerTasks 返回结果:', tasksResult);
+                
+                if (tasksResult === 0) {
+                  console.log('✅ Remote worker tasks started successfully');
+                  setSnackbarMessage('远程工作器任务已启动');
+                } else {
+                  console.warn('❌ Failed to start remote worker tasks, result:', tasksResult);
+                  setSnackbarMessage(`启动远程工作器任务失败 (错误代码: ${tasksResult})`);
+                }
+              } else {
+                // 工作器未运行，先启动工作器
+                console.log('准备启动远程工作器...');
+                const startResult = await GpufModule.startRemoteWorker(
+                  '8.140.251.142',  // 服务器地址
+                  17000,            // 控制端口
+                  17001,            // 代理端口
+                  'TCP',            // 连接类型
+                  '50ef7b5e7b5b4c79991087bb9f62cef1'  // 客户端ID
+                );
+                console.log('startRemoteWorker 返回结果:', startResult);
+                
+                if (startResult === 0) {
+                  console.log('✅ Remote worker started successfully');
+                  
+                  // 成功后再调用 startRemoteWorkerTasks
+                  console.log('准备启动远程工作器任务...');
+                  const tasksResult = await GpufModule.startRemoteWorkerTasks();
+                  console.log('startRemoteWorkerTasks 返回结果:', tasksResult);
+                  
+                  if (tasksResult === 0) {
+                    console.log('✅ Remote worker tasks started successfully');
+                    setSnackbarMessage('远程工作器已成功启动');
+                  } else {
+                    const status = await GpufModule.getRemoteWorkerStatus();
+                    console.warn('❌ Failed to start remote worker tasks, result:', tasksResult);
+                    console.warn('远程工作器状态:', status);
+                    setSnackbarMessage(`启动远程工作器任务失败 (错误代码: ${tasksResult})`);
+                  }
+                } else {
+                  // 获取详细状态信息
+                  try {
+                    const status = await GpufModule.getRemoteWorkerStatus();
+                    console.warn('❌ Failed to start remote worker, result:', startResult);
+                    console.warn('远程工作器状态:', status);
+                    console.warn('服务器地址: 8.140.251.142:17000/17001');
+                    console.warn('客户端ID: 50ef7b5e7b5b4c79991087bb9f62cef1');
+                    
+                    // 如果状态显示已经在运行，尝试直接启动任务
+                    if (status && status.includes('running')) {
+                      console.log('状态显示工作器在运行，尝试直接启动任务...');
+                      const tasksResult = await GpufModule.startRemoteWorkerTasks();
+                      if (tasksResult === 0) {
+                        console.log('✅ Remote worker tasks started successfully');
+                        setSnackbarMessage('远程工作器任务已启动');
+                      } else {
+                        setSnackbarMessage(`启动远程工作器失败 (错误代码: ${startResult}, 状态: ${status})`);
+                      }
+                    } else {
+                      setSnackbarMessage(`启动远程工作器失败 (错误代码: ${startResult}, 状态: ${status})`);
+                    }
+                  } catch (error) {
+                    console.warn('❌ Failed to start remote worker, result:', startResult);
+                    console.warn('无法获取状态信息:', error);
+                    setSnackbarMessage(`启动远程工作器失败 (错误代码: ${startResult})`);
+                  }
+                }
+              }
+            } else {
+              console.warn('❌ Failed to set remote worker model, result:', result);
+              setSnackbarMessage(`设置远程工作器失败 (错误代码: ${result})`);
+            }
+          } else {
+            console.log('⚠️ 模型未下载，无法设置为远程工作器');
+            setSnackbarMessage('模型未下载，无法设置为远程工作器');
+          }
+          
+          // 切换分享状态
+          console.log('准备切换分享状态...');
+          modelStore.toggleModelShare(model.id);
+          console.log('分享状态已切换，当前 sharedModelId:', modelStore.sharedModelId);
+          setSnackbarVisible(true);
+        }
+        
+        console.log('=== handleShare 函数执行完成 ===');
+      } catch (error) {
+        console.error('❌ Error in handleShare:', error);
+        console.error('错误详情:', error instanceof Error ? error.stack : error);
+        const errorMessage = error instanceof Error ? error.message : '未知错误';
+        setSnackbarMessage(`操作失败: ${errorMessage}`);
+        // 如果出错，仍然切换分享状态
+        modelStore.toggleModelShare(model.id);
+        setSnackbarVisible(true);
+        console.log('=== handleShare 函数执行完成（有错误）===');
+      }
+    }, [model.id, model.isDownloaded]);
 
     // Helper function to get model type icon - updated sizes
     const getModelTypeIcon = () => {
@@ -863,21 +1001,26 @@ export const ModelCard: React.FC<ModelCardProps> = observer(
             )}
           </View>
         </Card>
-        {/* Snackbar to show sharing status */}
+        {/* Snackbar to show sharing status and remote worker result */}
         <Snackbar
           testID="sharing-status-snackbar"
           visible={snackbarVisible}
-          onDismiss={() => setSnackbarVisible(false)}
-          duration={Snackbar.DURATION_SHORT}
+          onDismiss={() => {
+            setSnackbarVisible(false);
+            setSnackbarMessage('');
+          }}
+          duration={Snackbar.DURATION_MEDIUM}
           action={{
             label: l10n.common.dismiss,
             onPress: () => {
               setSnackbarVisible(false);
+              setSnackbarMessage('');
             },
           }}>
-          {modelStore.sharedModelId === model.id
-            ? "模型已设置为设备分享"
-            : "模型分享已取消"}
+          {snackbarMessage || 
+            (modelStore.sharedModelId === model.id
+              ? "模型已设置为设备分享"
+              : "模型分享已取消")}
         </Snackbar>
       </>
     );

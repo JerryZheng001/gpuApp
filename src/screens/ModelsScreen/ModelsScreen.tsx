@@ -370,23 +370,23 @@ export const ModelsScreen: React.FC = observer(() => {
           </Text>
         </View>
       ) : (
-        <FlatList
-          testID="flat-list"
-          keyboardDismissMode="on-drag"
-          keyboardShouldPersistTaps="handled"
-          contentContainerStyle={styles.listContainer}
-          data={flatListModels}
-          keyExtractor={item => item.type}
-          extraData={activeModelId}
-          renderItem={renderGroupHeader}
-          refreshControl={
-            <RefreshControl
-              refreshing={refreshing}
-              onRefresh={onRefresh}
-              colors={[theme.colors.primary]}
-            />
-          }
-        />
+      <FlatList
+        testID="flat-list"
+        keyboardDismissMode="on-drag"
+        keyboardShouldPersistTaps="handled"
+        contentContainerStyle={styles.listContainer}
+        data={flatListModels}
+        keyExtractor={item => item.type}
+        extraData={activeModelId}
+        renderItem={renderGroupHeader}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            colors={[theme.colors.primary]}
+          />
+        }
+      />
       )}
 
       {/* DownloadErrorDialog with Portal for better visibility */}

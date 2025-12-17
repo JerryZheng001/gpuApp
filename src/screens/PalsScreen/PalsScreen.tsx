@@ -26,7 +26,8 @@ import {SectionDivider} from '../../components/PalsSheets/SectionDivider';
 
 // Unified pal sheet component
 import {PalSheet} from '../../components/PalsSheets';
-import {AuthSheet, PalDetailSheet} from '../../components/PalsHub';
+import {PalDetailSheet} from '../../components/PalsHub';
+import {MobileAuthSheet} from '../../components/MobileAuth';
 
 // Pal template factories
 import {
@@ -37,7 +38,7 @@ import {
 } from '../../utils/pal-templates';
 
 // Services and stores
-import {authService, syncService} from '../../services';
+import {mobileAuthService, syncService} from '../../services';
 import {palStore, Pal} from '../../store';
 import {hasVideoCapability} from '../../utils/pal-capabilities';
 
@@ -76,7 +77,7 @@ export const PalsScreen: React.FC = observer(() => {
     const runInitialSetup = async () => {
       try {
         // Start sync service if user is authenticated
-        if (authService.isAuthenticated) {
+        if (mobileAuthService.isAuthenticated) {
           const needsSync = await syncService.needsSync();
           if (needsSync) {
             console.log('Syncing with PalsHub...');
@@ -121,7 +122,7 @@ export const PalsScreen: React.FC = observer(() => {
     try {
       // Load public pals for browsing
       await palStore.searchPalsHubPals({sortBy: 'newest', limit: 20});
-      if (authService.isAuthenticated) {
+      if (mobileAuthService.isAuthenticated) {
         await Promise.all([
           palStore.loadUserLibrary(),
           palStore.loadUserCreatedPals(),
@@ -151,7 +152,7 @@ export const PalsScreen: React.FC = observer(() => {
         setIsSearchExpanded(!isSearchExpanded);
         break;
       case 'profile':
-        if (authService.isAuthenticated) {
+        if (mobileAuthService.isAuthenticated) {
           setShowProfile(true);
         } else {
           setShowAuth(true);
@@ -243,7 +244,7 @@ export const PalsScreen: React.FC = observer(() => {
           });
         }
         // if authenticated
-        if (authService.isAuthenticated) {
+        if (mobileAuthService.isAuthenticated) {
           const allLibraryPals = [
             ...palStore.userLibrary,
             ...palStore.userCreatedPals,
@@ -279,7 +280,7 @@ export const PalsScreen: React.FC = observer(() => {
         }
 
         // if authenticated
-        if (authService.isAuthenticated) {
+        if (mobileAuthService.isAuthenticated) {
           const allLibraryPals = [
             ...palStore.userLibrary,
             ...palStore.userCreatedPals,
@@ -362,9 +363,9 @@ export const PalsScreen: React.FC = observer(() => {
   return (
     <View style={styles.container}>
       {/* Compact Auth Bar - Only for unauthenticated users and when not dismissed */}
-      {!authService.isAuthenticated && showAuthBar && (
+      {!mobileAuthService.isAuthenticated && showAuthBar && (
         <CompactAuthBar
-          isAuthenticated={authService.isAuthenticated}
+          isAuthenticated={mobileAuthService.isAuthenticated}
           onSignInPress={() => setShowAuth(true)}
           onProfilePress={() => setShowProfile(true)}
           onDismiss={() => setShowAuthBar(false)}
@@ -382,7 +383,7 @@ export const PalsScreen: React.FC = observer(() => {
       <FilterChips
         activeFilter={activeFilter}
         onFilterChange={setActiveFilter}
-        isAuthenticated={authService.isAuthenticated}
+        isAuthenticated={mobileAuthService.isAuthenticated}
       />
 
       {/* Main Content */}
@@ -429,7 +430,7 @@ export const PalsScreen: React.FC = observer(() => {
         activeAction={activeAction}
         onActionPress={handleActionPress}
         onCreatePal={handleCreatePal}
-        isAuthenticated={authService.isAuthenticated}
+        isAuthenticated={mobileAuthService.isAuthenticated}
       />
 
       {/* Sheets */}
@@ -443,9 +444,12 @@ export const PalsScreen: React.FC = observer(() => {
         />
       )}
 
-      {/* Auth Sheet */}
+      {/* Mobile Auth Sheet (手机号验证码登录) */}
       {showAuth && (
-        <AuthSheet isVisible={showAuth} onClose={() => setShowAuth(false)} />
+        <MobileAuthSheet
+          isVisible={showAuth}
+          onClose={() => setShowAuth(false)}
+        />
       )}
 
       {/* Palhub's Pal Detail Sheet */}

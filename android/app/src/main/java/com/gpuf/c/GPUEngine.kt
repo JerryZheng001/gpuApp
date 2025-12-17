@@ -12,5 +12,5 @@ object GPUEngine {
   external fun initialize(): Int
   external fun loadModel(modelPath: String): Long
   external fun createContext(modelPtr: Long): Long
-  external fun generate(modelPtr: Long, contextPtr: Long, prompt: String, maxTokens: Int): Int
+  external fun generate(modelPtr: Long, contextPtr: Long, prompt: String, maxTokens: Int, outputBuffer: Any?): Int
 }

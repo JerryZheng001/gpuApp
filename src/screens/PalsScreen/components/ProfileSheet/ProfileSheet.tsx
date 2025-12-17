@@ -11,7 +11,7 @@ import {L10nContext} from '../../../../utils';
 import {Sheet} from '../../../../components';
 import {createStyles} from './styles';
 
-import {authService} from '../../../../services';
+import {mobileAuthService} from '../../../../services';
 
 interface ProfileSheetProps {
   isVisible: boolean;
@@ -35,9 +35,9 @@ export const ProfileSheet: React.FC<ProfileSheetProps> = observer(
           {
             text: l10n.palsScreen.signOut,
             style: 'destructive',
-            onPress: async () => {
+            onPress: () => {
               try {
-                await authService.signOut();
+                mobileAuthService.signOut();
                 onClose();
               } catch (error) {
                 console.error('Error signing out:', error);
@@ -53,8 +53,8 @@ export const ProfileSheet: React.FC<ProfileSheetProps> = observer(
     };
 
     const renderAuthenticatedContent = () => {
-      const user = authService.user;
-      const userName = user?.user_metadata?.name || user?.email || 'User';
+      const user = mobileAuthService.user;
+      const userName = user?.display_name || user?.phone_number || '用户';
 
       return (
         <View style={styles.content}>
@@ -68,7 +68,7 @@ export const ProfileSheet: React.FC<ProfileSheetProps> = observer(
             </View>
             <View style={styles.userInfo}>
               <Text style={styles.userName}>{userName}</Text>
-              <Text style={styles.userEmail}>{user?.email}</Text>
+              <Text style={styles.userEmail}>{user?.phone_number}</Text>
             </View>
           </View>
 
@@ -128,7 +128,7 @@ export const ProfileSheet: React.FC<ProfileSheetProps> = observer(
         isVisible={isVisible}
         onClose={onClose}
         title={
-          authService.isAuthenticated
+          mobileAuthService.isAuthenticated
             ? l10n.palsScreen.profile
             : l10n.palsScreen.account
         }>
@@ -136,7 +136,7 @@ export const ProfileSheet: React.FC<ProfileSheetProps> = observer(
           contentContainerStyle={{
             paddingBottom: insets.bottom + 16,
           }}>
-          {authService.isAuthenticated
+          {mobileAuthService.isAuthenticated
             ? renderAuthenticatedContent()
             : renderUnauthenticatedContent()}
         </Sheet.ScrollView>

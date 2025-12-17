@@ -54,4 +54,8 @@ export const createStyles = (theme: MD3Theme) =>
     sessionTouchable: {
       flex: 1,
     },
+    bottomSection: {
+      backgroundColor: 'transparent',
+      paddingTop: 8,
+    },
   });
