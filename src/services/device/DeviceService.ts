@@ -188,6 +188,24 @@ class DeviceService {
     }
 
     /**
+     * 清空本地存储的设备数据（包括 AsyncStorage）
+     */
+    async clearStoredDeviceData() {
+        try {
+            // 清除内存中的数据
+            this.clearDevice();
+            
+            // 清除 AsyncStorage 中的持久化数据
+            await AsyncStorage.removeItem('DeviceService');
+            
+            console.log('✅ 已清空本地存储的 deviceService 数据');
+        } catch (error) {
+            console.error('❌ 清空设备数据失败:', error);
+            throw error;
+        }
+    }
+
+    /**
      * 清除错误
      */
     clearError() {

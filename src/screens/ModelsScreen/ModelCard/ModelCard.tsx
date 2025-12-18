@@ -342,9 +342,12 @@ export const ModelCard: React.FC<ModelCardProps> = observer(
       // 开始加载状态（只有启动分享时才需要）
       setIsSharing(true);
 
+      // 保存是否是切换模型的状态（在停止操作之前，因为停止后会清除 sharedModelId）
+      const isSwitchingModel = hasOtherModelSharing;
+
       try {
         // 【重要】如果有其他模型正在分享，必须先停止它
-        // 然后走完整的分享流程：setRemoteWorkerModel -> startRemoteWorker -> startRemoteWorkerTasks
+        // 切换模型流程：stopRemoteWorker -> setRemoteWorkerModel -> startRemoteWorkerTasks（不调用 startRemoteWorker）
         if (hasOtherModelSharing) {
           console.log('⚠️ 检测到有其他模型正在分享，必须先停止当前分享...');
           console.log('当前分享的模型ID:', modelStore.sharedModelId);
@@ -450,9 +453,10 @@ export const ModelCard: React.FC<ModelCardProps> = observer(
         }
         console.log('✅ Step 1 完成: 模型设置成功');
 
-        // Step 2: 启动远程工作器（无论是首次分享还是切换模型，都需要重新启动）
-        console.log('Step 2: 调用 startRemoteWorker...');
+        // Step 2: 启动远程工作器（首次初始化和切换模型都需要调用）
+        console.log(`Step 2: 调用 startRemoteWorker${isSwitchingModel ? '（切换模型）' : '（首次初始化）'}...`);
         const clientId = deviceService.clientId || '';
+        // const clientId = '50ef7b5e7b5b4c79991087bb9f62cef1';
         console.log('使用 client_id:', clientId);
 
         let startWorkerResult: number;

@@ -57,7 +57,7 @@ import {
 } from '../../utils';
 import {checkGpuSupport} from '../../utils/deviceCapabilities';
 import {exportLegacyChatSessions} from '../../utils/exportUtils';
-import {mobileAuthService} from '../../services';
+import {mobileAuthService, deviceService} from '../../services';
 import GpufModule from '../../services/GpufModule';
 import {getDeviceOptions, DeviceOption} from '../../utils/deviceSelection';
 import {
@@ -1184,10 +1184,60 @@ export const SettingsScreen: React.FC = observer(() => {
             </Card.Content>
           </Card>
 
-          {/* 退出登录 - 仅在已登录时显示 */}
+          {/* 账户设置 - 仅在已登录时显示 */}
           {mobileAuthService.isAuthenticated && (
             <Card elevation={0} style={styles.card}>
               <Card.Content>
+                <Text
+                  variant="titleMedium"
+                  style={[
+                    styles.textLabel,
+                    {marginBottom: 12, marginTop: 0},
+                  ]}>
+                  账户
+                </Text>
+                
+                {/* 清空设备数据按钮 */}
+                {deviceService.isDeviceBound && (
+                  <View style={{marginBottom: 12}}>
+                    <Button
+                      mode="outlined"
+                      style={{borderColor: '#ddd'}}
+                      onPress={() => {
+                        Alert.alert(
+                          '清空设备数据',
+                          '确定要清空设备绑定数据吗？清空后需要重新绑定设备才能分享模型。',
+                          [
+                            {text: '取消', style: 'cancel'},
+                            {
+                              text: '确定',
+                              onPress: async () => {
+                                try {
+                                  // 如果正在分享，先停止分享
+                                  if (modelStore.sharedModelId) {
+                                    console.log('清空设备数据：停止分享...');
+                                    await GpufModule.stopRemoteWorker();
+                                    modelStore.clearSharedModel();
+                                  }
+                                  // 清空设备数据
+                                  await deviceService.clearStoredDeviceData();
+                                  console.log('已清空设备数据');
+                                  Alert.alert('提示', '设备数据已清空');
+                                } catch (error) {
+                                  console.error('清空设备数据失败:', error);
+                                  Alert.alert('错误', '清空设备数据失败');
+                                }
+                              },
+                            },
+                          ],
+                        );
+                      }}>
+                      清空设备数据
+                    </Button>
+                  </View>
+                )}
+
+                {/* 退出登录按钮 */}
                 <Button
                   mode="outlined"
                   style={{borderColor: '#eee'}}
@@ -1208,8 +1258,11 @@ export const SettingsScreen: React.FC = observer(() => {
                                 await GpufModule.stopRemoteWorker();
                                 modelStore.clearSharedModel();
                               }
+                              // 清空设备数据
+                              await deviceService.clearStoredDeviceData();
+                              console.log('退出登录：已清空设备数据');
                             } catch (error) {
-                              console.error('停止分享失败:', error);
+                              console.error('停止分享或清空设备数据失败:', error);
                             }
                             // 退出登录
                             mobileAuthService.signOut();

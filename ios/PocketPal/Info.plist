@@ -34,7 +34,7 @@
 			<key>CFBundleTypeRole</key>
 			<string>Editor</string>
 			<key>CFBundleURLName</key>
-			<string>com.pocketpalai.deeplink</string>
+			<string>com.gpunexus.deeplink</string>
 			<key>CFBundleURLSchemes</key>
 			<array>
 				<string>pocketpal</string>
