@@ -1,4 +1,4 @@
-package com.pocketpal
+package com.gpunexus
 
 import com.facebook.react.ReactActivity
 import com.facebook.react.ReactActivityDelegate

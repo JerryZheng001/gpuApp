@@ -1,9 +1,9 @@
-package com.pocketpal
+package com.gpunexus
 
 import android.view.WindowManager
 import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.module.annotations.ReactModule
-import com.pocketpal.specs.NativeKeepAwakeSpec
+import com.gpunexus.specs.NativeKeepAwakeSpec
 
 @ReactModule(name = NativeKeepAwakeSpec.NAME)
 class KeepAwakeModule(reactContext: ReactApplicationContext) :
