@@ -1,4 +1,4 @@
-package com.pocketpal.download
+package com.gpunexus.download
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey

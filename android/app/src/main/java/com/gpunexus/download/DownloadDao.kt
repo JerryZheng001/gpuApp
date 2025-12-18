@@ -1,4 +1,4 @@
-package com.pocketpal.download
+package com.gpunexus.download
 
 import androidx.room.*
 import kotlinx.coroutines.flow.Flow

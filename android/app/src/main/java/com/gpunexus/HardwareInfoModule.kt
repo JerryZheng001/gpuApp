@@ -1,8 +1,8 @@
-package com.pocketpal
+package com.gpunexus
 
 import com.facebook.react.bridge.*
 import com.facebook.react.module.annotations.ReactModule
-import com.pocketpal.specs.NativeHardwareInfoSpec
+import com.gpunexus.specs.NativeHardwareInfoSpec
 import android.os.Build
 import java.io.File
 import java.util.regex.Pattern

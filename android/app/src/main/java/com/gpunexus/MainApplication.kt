@@ -1,4 +1,4 @@
-package com.pocketpal
+package com.gpunexus
 
 import android.app.Application
 import com.facebook.react.PackageList
@@ -11,10 +11,10 @@ import com.facebook.react.defaults.DefaultReactHost.getDefaultReactHost
 import com.facebook.react.defaults.DefaultReactNativeHost
 import com.facebook.react.soloader.OpenSourceMergedSoMapping
 import com.facebook.soloader.SoLoader
-import com.pocketpal.KeepAwakePackage
-import com.pocketpal.HardwareInfoPackage
-import com.pocketpal.download.DownloadPackage
-import com.pocketpal.GpufPackage
+import com.gpunexus.KeepAwakePackage
+import com.gpunexus.HardwareInfoPackage
+import com.gpunexus.download.DownloadPackage
+import com.gpunexus.GpufPackage
 
 class MainApplication : Application(), ReactApplication {
 
