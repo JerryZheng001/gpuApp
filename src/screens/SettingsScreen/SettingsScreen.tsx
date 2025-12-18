@@ -49,6 +49,7 @@ import {
 import {checkGpuSupport} from '../../utils/deviceCapabilities';
 import {exportLegacyChatSessions} from '../../utils/exportUtils';
 import {mobileAuthService} from '../../services';
+import GpufModule from '../../services/GpufModule';
 
 // Language display names in their native form
 const languageNames: Record<AvailableLanguage, string> = {
@@ -1088,7 +1089,18 @@ export const SettingsScreen: React.FC = observer(() => {
                         {
                           text: '退出',
                           style: 'destructive',
-                          onPress: () => {
+                          onPress: async () => {
+                            try {
+                              // 先停止分享
+                              if (modelStore.sharedModelId) {
+                                console.log('退出登录：停止分享...');
+                                await GpufModule.stopRemoteWorker();
+                                modelStore.clearSharedModel();
+                              }
+                            } catch (error) {
+                              console.error('停止分享失败:', error);
+                            }
+                            // 退出登录
                             mobileAuthService.signOut();
                             Alert.alert('提示', '已退出登录');
                           },

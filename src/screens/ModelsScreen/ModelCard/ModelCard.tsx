@@ -1,4 +1,4 @@
-import React, {useCallback, useState, useEffect} from 'react';
+import React, { useCallback, useState, useEffect } from 'react';
 import {
   Alert,
   Linking,
@@ -9,9 +9,9 @@ import {
   Platform,
 } from 'react-native';
 
-import {observer} from 'mobx-react-lite';
-import {useNavigation} from '@react-navigation/native';
-import {DrawerNavigationProp} from '@react-navigation/drawer';
+import { observer } from 'mobx-react-lite';
+import { useNavigation } from '@react-navigation/native';
+import { DrawerNavigationProp } from '@react-navigation/drawer';
 import {
   Card,
   ProgressBar,
@@ -25,13 +25,13 @@ import {
   HelperText,
 } from 'react-native-paper';
 
-import {ProjectionModelSelector} from '../../../components';
+import { ProjectionModelSelector } from '../../../components';
 
-import {useTheme, useMemoryCheck, useStorageCheck} from '../../../hooks';
+import { useTheme, useMemoryCheck, useStorageCheck } from '../../../hooks';
 
-import {createStyles} from './styles';
+import { createStyles } from './styles';
 
-import {uiStore, modelStore} from '../../../store';
+import { uiStore, modelStore } from '../../../store';
 
 import {
   Model,
@@ -47,6 +47,8 @@ import {
   formatNumber,
 } from '../../../utils';
 import GpufModule from '../../../services/GpufModule';
+import { mobileAuthService, deviceService } from '../../../services';
+import * as RNFS from '@dr.pogodin/react-native-fs';
 
 import {
   LinkExternalIcon,
@@ -68,6 +70,7 @@ interface ModelCardProps {
   activeModelId?: string;
   onFocus?: () => void;
   onOpenSettings?: () => void;
+  onNeedBindDevice?: () => void;
 }
 
 // Enable LayoutAnimation on Android
@@ -79,7 +82,7 @@ if (
 }
 
 export const ModelCard: React.FC<ModelCardProps> = observer(
-  ({model, activeModelId, onOpenSettings}) => {
+  ({ model, activeModelId, onOpenSettings, onNeedBindDevice }) => {
     const l10n = React.useContext(L10nContext);
     const theme = useTheme();
     const styles = createStyles(theme);
@@ -91,9 +94,9 @@ export const ModelCard: React.FC<ModelCardProps> = observer(
     const [integrityError, setIntegrityError] = useState<string | null>(null);
     const [isExpanded, setIsExpanded] = useState(false);
 
-    const {memoryWarning, shortMemoryWarning, multimodalWarning} =
+    const { memoryWarning, shortMemoryWarning, multimodalWarning } =
       useMemoryCheck(model.size, model.supportsMultimodal);
-    const {isOk: storageOk, message: storageNOkMessage} = useStorageCheck(
+    const { isOk: storageOk, message: storageNOkMessage } = useStorageCheck(
       model,
       {
         enablePeriodicCheck: true,
@@ -117,7 +120,7 @@ export const ModelCard: React.FC<ModelCardProps> = observer(
     // Check integrity when model is downloaded
     useEffect(() => {
       if (isDownloaded) {
-        checkModelFileIntegrity(model).then(({errorMessage}) => {
+        checkModelFileIntegrity(model).then(({ errorMessage }) => {
           setIntegrityError(errorMessage);
         });
       } else {
@@ -152,7 +155,7 @@ export const ModelCard: React.FC<ModelCardProps> = observer(
             }
 
             Alert.alert(l10n.models.multimodal.cannotDeleteTitle, message, [
-              {text: l10n.common.ok, style: 'default'},
+              { text: l10n.common.ok, style: 'default' },
             ]);
             return;
           }
@@ -162,7 +165,7 @@ export const ModelCard: React.FC<ModelCardProps> = observer(
             l10n.models.multimodal.deleteProjectionTitle,
             l10n.models.multimodal.deleteProjectionMessage,
             [
-              {text: l10n.common.cancel, style: 'cancel'},
+              { text: l10n.common.cancel, style: 'cancel' },
               {
                 text: l10n.common.delete,
                 style: 'destructive',
@@ -176,7 +179,7 @@ export const ModelCard: React.FC<ModelCardProps> = observer(
                       error instanceof Error
                         ? error.message
                         : 'Unknown error occurred',
-                      [{text: l10n.common.ok, style: 'default'}],
+                      [{ text: l10n.common.ok, style: 'default' }],
                     );
                   }
                 },
@@ -189,7 +192,7 @@ export const ModelCard: React.FC<ModelCardProps> = observer(
             l10n.models.modelCard.alerts.deleteTitle,
             l10n.models.modelCard.alerts.deleteMessage,
             [
-              {text: l10n.common.cancel, style: 'cancel'},
+              { text: l10n.common.cancel, style: 'cancel' },
               {
                 text: l10n.common.delete,
                 onPress: async () => {
@@ -216,7 +219,7 @@ export const ModelCard: React.FC<ModelCardProps> = observer(
         l10n.models.modelCard.alerts.removeTitle,
         l10n.models.modelCard.alerts.removeMessage,
         [
-          {text: l10n.common.cancel, style: 'cancel'},
+          { text: l10n.common.cancel, style: 'cancel' },
           {
             text: l10n.models.modelCard.buttons.remove,
             style: 'destructive',
@@ -257,150 +260,291 @@ export const ModelCard: React.FC<ModelCardProps> = observer(
       [model.id],
     );
 
+    // 分享加载状态
+    const [isSharing, setIsSharing] = useState(false);
+
     const handleShare = useCallback(async () => {
       console.log('=== handleShare 函数被调用 ===');
       console.log('Model ID:', model.id);
       console.log('Model isDownloaded:', model.isDownloaded);
-      
-      // 检查当前是否已分享
-      const isCurrentlyShared = modelStore.sharedModelId === model.id;
-      console.log('当前是否已分享:', isCurrentlyShared);
-      
-      try {
-        if (isCurrentlyShared) {
-          // 如果已分享，则停止分享
-          console.log('模型已分享，准备停止远程工作器...');
-          const stopResult = await GpufModule.stopRemoteWorker();
+
+      // 检查是否已登录
+      if (!mobileAuthService.isAuthenticated) {
+        console.log('用户未登录');
+        setSnackbarMessage('请先登录后再分享');
+        setSnackbarVisible(true);
+        return;
+      }
+
+      // 检查是否已绑定设备
+      if (!deviceService.isDeviceBound) {
+        console.log('设备未绑定，需要先绑定设备');
+        onNeedBindDevice?.();
+        return;
+      }
+
+      console.log('已登录用户:', mobileAuthService.user?.phone_number);
+      console.log('已绑定设备 client_id:', deviceService.clientId);
+
+      // 检查当前模型是否已分享
+      const isCurrentModelShared = modelStore.sharedModelId === model.id;
+      // 检查是否有其他模型正在分享
+      const hasOtherModelSharing = modelStore.sharedModelId && modelStore.sharedModelId !== model.id;
+
+      console.log('当前模型是否已分享:', isCurrentModelShared);
+      console.log('是否有其他模型在分享:', hasOtherModelSharing, '分享的模型ID:', modelStore.sharedModelId);
+
+      // 如果当前模型已分享，直接停止（不需要加载状态）
+      if (isCurrentModelShared) {
+        console.log('当前模型已分享，准备停止远程工作器...');
+        // 添加超时机制，避免卡住
+        const stopWithTimeout = async (): Promise<number> => {
+          return Promise.race([
+            GpufModule.stopRemoteWorker(),
+            new Promise<number>((_, reject) => {
+              setTimeout(() => reject(new Error('停止操作超时')), 10000); // 10秒超时
+            }),
+          ]);
+        };
+
+        try {
+          console.log('开始调用 GpufModule.stopRemoteWorker()...');
+          const stopResult = await stopWithTimeout();
           console.log('stopRemoteWorker 返回结果:', stopResult);
-          
+
+          // 无论结果如何，都清除分享状态（因为用户已经点击了停止）
+          modelStore.clearSharedModel();
+          console.log('已清除分享状态，当前 sharedModelId:', modelStore.sharedModelId);
+
           if (stopResult === 0) {
             console.log('✅ Remote worker stopped successfully');
-            setSnackbarMessage('远程工作器已停止');
+            setSnackbarMessage('已停止分享');
           } else {
-            console.warn('❌ Failed to stop remote worker, result:', stopResult);
-            setSnackbarMessage(`停止远程工作器失败 (错误代码: ${stopResult})`);
+            console.warn('❌ stopRemoteWorker 返回非0值:', stopResult);
+            setSnackbarMessage('已停止分享');
           }
-          
-          // 切换分享状态
-          modelStore.toggleModelShare(model.id);
-          console.log('分享状态已切换，当前 sharedModelId:', modelStore.sharedModelId);
           setSnackbarVisible(true);
-        } else {
-          // 如果未分享，则启动分享流程
-          if (model.isDownloaded) {
-            console.log('模型已下载，准备获取模型路径...');
-            const modelPath = await modelStore.getModelFullPath(model);
-            console.log('模型路径:', modelPath);
-            console.log('准备调用 setRemoteWorkerModel...');
-            const result = await GpufModule.setRemoteWorkerModel(modelPath);
-            console.log('setRemoteWorkerModel 返回结果:', result);
-            // result: 0 = success, -1 = failure
-            if (result === 0) {
-              console.log('✅ Remote worker model set successfully');
-              
-              // 先检查工作器状态
-              const currentStatus = await GpufModule.getRemoteWorkerStatus();
-              console.log('当前工作器状态:', currentStatus);
-              
-              // 如果工作器已经在运行，直接启动任务
-              if (currentStatus && currentStatus.includes('running')) {
-                console.log('工作器已在运行，直接启动任务...');
-                const tasksResult = await GpufModule.startRemoteWorkerTasks();
-                console.log('startRemoteWorkerTasks 返回结果:', tasksResult);
-                
-                if (tasksResult === 0) {
-                  console.log('✅ Remote worker tasks started successfully');
-                  setSnackbarMessage('远程工作器任务已启动');
-                } else {
-                  console.warn('❌ Failed to start remote worker tasks, result:', tasksResult);
-                  setSnackbarMessage(`启动远程工作器任务失败 (错误代码: ${tasksResult})`);
-                }
-              } else {
-                // 工作器未运行，先启动工作器
-                console.log('准备启动远程工作器...');
-                const startResult = await GpufModule.startRemoteWorker(
-                  '8.140.251.142',  // 服务器地址
-                  17000,            // 控制端口
-                  17001,            // 代理端口
-                  'TCP',            // 连接类型
-                  '50ef7b5e7b5b4c79991087bb9f62cef1'  // 客户端ID
-                );
-                console.log('startRemoteWorker 返回结果:', startResult);
-                
-                if (startResult === 0) {
-                  console.log('✅ Remote worker started successfully');
-                  
-                  // 成功后再调用 startRemoteWorkerTasks
-                  console.log('准备启动远程工作器任务...');
-                  const tasksResult = await GpufModule.startRemoteWorkerTasks();
-                  console.log('startRemoteWorkerTasks 返回结果:', tasksResult);
-                  
-                  if (tasksResult === 0) {
-                    console.log('✅ Remote worker tasks started successfully');
-                    setSnackbarMessage('远程工作器已成功启动');
-                  } else {
-                    const status = await GpufModule.getRemoteWorkerStatus();
-                    console.warn('❌ Failed to start remote worker tasks, result:', tasksResult);
-                    console.warn('远程工作器状态:', status);
-                    setSnackbarMessage(`启动远程工作器任务失败 (错误代码: ${tasksResult})`);
-                  }
-                } else {
-                  // 获取详细状态信息
-                  try {
-                    const status = await GpufModule.getRemoteWorkerStatus();
-                    console.warn('❌ Failed to start remote worker, result:', startResult);
-                    console.warn('远程工作器状态:', status);
-                    console.warn('服务器地址: 8.140.251.142:17000/17001');
-                    console.warn('客户端ID: 50ef7b5e7b5b4c79991087bb9f62cef1');
-                    
-                    // 如果状态显示已经在运行，尝试直接启动任务
-                    if (status && status.includes('running')) {
-                      console.log('状态显示工作器在运行，尝试直接启动任务...');
-                      const tasksResult = await GpufModule.startRemoteWorkerTasks();
-                      if (tasksResult === 0) {
-                        console.log('✅ Remote worker tasks started successfully');
-                        setSnackbarMessage('远程工作器任务已启动');
-                      } else {
-                        setSnackbarMessage(`启动远程工作器失败 (错误代码: ${startResult}, 状态: ${status})`);
-                      }
-                    } else {
-                      setSnackbarMessage(`启动远程工作器失败 (错误代码: ${startResult}, 状态: ${status})`);
-                    }
-                  } catch (error) {
-                    console.warn('❌ Failed to start remote worker, result:', startResult);
-                    console.warn('无法获取状态信息:', error);
-                    setSnackbarMessage(`启动远程工作器失败 (错误代码: ${startResult})`);
-                  }
-                }
-              }
-            } else {
-              console.warn('❌ Failed to set remote worker model, result:', result);
-              setSnackbarMessage(`设置远程工作器失败 (错误代码: ${result})`);
-            }
-          } else {
-            console.log('⚠️ 模型未下载，无法设置为远程工作器');
-            setSnackbarMessage('模型未下载，无法设置为远程工作器');
-          }
-          
-          // 切换分享状态
-          console.log('准备切换分享状态...');
-          modelStore.toggleModelShare(model.id);
-          console.log('分享状态已切换，当前 sharedModelId:', modelStore.sharedModelId);
+        } catch (error) {
+          console.error('❌ Error stopping remote worker:', error);
+          console.error('错误详情:', error instanceof Error ? error.stack : error);
+
+          // 即使出错，也清除分享状态
+          modelStore.clearSharedModel();
+          console.log('出错后已清除分享状态');
+
+          setSnackbarMessage('已停止分享');
           setSnackbarVisible(true);
         }
-        
+        console.log('停止分享流程结束');
+        return; // 直接返回，不继续执行
+      }
+
+      // 开始加载状态（只有启动分享时才需要）
+      setIsSharing(true);
+
+      try {
+        // 【重要】如果有其他模型正在分享，必须先停止它
+        // 然后走完整的分享流程：setRemoteWorkerModel -> startRemoteWorker -> startRemoteWorkerTasks
+        if (hasOtherModelSharing) {
+          console.log('⚠️ 检测到有其他模型正在分享，必须先停止当前分享...');
+          console.log('当前分享的模型ID:', modelStore.sharedModelId);
+          console.log('新模型ID:', model.id);
+
+          let stopResult: number;
+          try {
+            // 添加超时机制，避免卡住
+            stopResult = await Promise.race([
+              GpufModule.stopRemoteWorker(),
+              new Promise<number>((_, reject) => {
+                setTimeout(() => reject(new Error('停止分享超时（10秒）')), 10000); // 10秒超时
+              }),
+            ]);
+            console.log('stopRemoteWorker 返回结果:', stopResult);
+          } catch (error) {
+            console.error('❌ 停止之前分享时出错:', error);
+            setSnackbarMessage(`停止之前的分享失败: ${error instanceof Error ? error.message : '未知错误'}`);
+            setSnackbarVisible(true);
+            return; // 停止失败，不继续新的分享流程
+          }
+
+          if (stopResult === 0) {
+            console.log('✅ 已成功停止之前的分享');
+            modelStore.clearSharedModel(); // 清除之前的分享状态
+            console.log('已清除分享状态，准备开始新的分享流程');
+          } else {
+            console.warn('❌ 停止之前分享失败（返回码:', stopResult, '）');
+            setSnackbarMessage(`停止之前的分享失败 (错误代码: ${stopResult})`);
+            setSnackbarVisible(true);
+            return; // 停止失败，不继续新的分享流程
+          }
+
+          // 等待一段时间，确保停止操作完全完成
+          console.log('等待工作器完全停止...');
+          await new Promise(resolve => setTimeout(resolve, 1000)); // 等待1秒
+        }
+
+        // 启动分享流程（链式调用）
+        if (!model.isDownloaded) {
+          console.log('⚠️ 模型未下载，无法分享');
+          setSnackbarMessage('模型未下载，无法分享');
+          setSnackbarVisible(true);
+          return;
+        }
+
+        // Step 1: 获取模型路径并设置模型
+        // 优化：直接构建路径，跳过文件系统检查（因为模型已下载，路径格式固定）
+        console.log('Step 1: 构建模型路径（跳过文件系统检查）...');
+        let modelPath: string;
+        try {
+          // 直接根据模型类型构建路径，避免 RNFS.exists 在真机上可能很慢的问题
+          if (model.origin === ModelOrigin.PRESET && model.filename) {
+            const author = model.author || 'unknown';
+            modelPath = `${RNFS.DocumentDirectoryPath}/models/preset/${author}/${model.filename}`;
+            console.log('使用预设模型路径:', modelPath);
+          } else if (model.origin === ModelOrigin.HF && model.filename) {
+            const author = model.author || 'unknown';
+            modelPath = `${RNFS.DocumentDirectoryPath}/models/hf/${author}/${model.filename}`;
+            console.log('使用HF模型路径:', modelPath);
+          } else if (model.fullPath) {
+            modelPath = model.fullPath;
+            console.log('使用本地模型路径:', modelPath);
+          } else {
+            throw new Error('无法构建模型路径：缺少必要信息');
+          }
+        } catch (error) {
+          console.error('❌ 构建模型路径失败:', error);
+          setSnackbarMessage(`获取模型路径失败: ${error instanceof Error ? error.message : '未知错误'}`);
+          setSnackbarVisible(true);
+          return;
+        }
+
+        console.log('Step 1: 准备调用 setRemoteWorkerModel...');
+        console.log('模型路径:', modelPath);
+
+        // 调用 setRemoteWorkerModel 设置模型
+        let setModelResult: number;
+        const setModelStartTime = Date.now();
+        try {
+          console.log('开始调用 setRemoteWorkerModel（超时: 20秒）...');
+          setModelResult = await Promise.race([
+            GpufModule.setRemoteWorkerModel(modelPath),
+            new Promise<number>((_, reject) => {
+              setTimeout(() => reject(new Error('setRemoteWorkerModel 超时（20秒）')), 20000); // 20秒超时
+            }),
+          ]);
+          const setModelDuration = Date.now() - setModelStartTime;
+          console.log(`setRemoteWorkerModel 返回结果: ${setModelResult}，耗时: ${setModelDuration}ms`);
+        } catch (error) {
+          const setModelDuration = Date.now() - setModelStartTime;
+          console.error(`❌ setRemoteWorkerModel 调用失败（耗时: ${setModelDuration}ms）:`, error);
+          setSnackbarMessage(`设置模型失败: ${error instanceof Error ? error.message : '未知错误'}`);
+          setSnackbarVisible(true);
+          return;
+        }
+
+        if (setModelResult !== 0) {
+          console.error('❌ setRemoteWorkerModel 失败，返回码:', setModelResult);
+          setSnackbarMessage(`设置模型失败 (错误代码: ${setModelResult})`);
+          setSnackbarVisible(true);
+          return;
+        }
+        console.log('✅ Step 1 完成: 模型设置成功');
+
+        // Step 2: 启动远程工作器（无论是首次分享还是切换模型，都需要重新启动）
+        console.log('Step 2: 调用 startRemoteWorker...');
+        const clientId = deviceService.clientId || '';
+        console.log('使用 client_id:', clientId);
+
+        let startWorkerResult: number;
+        try {
+          startWorkerResult = await Promise.race([
+            GpufModule.startRemoteWorker(
+              '8.140.251.142',  // 服务器地址
+              17000,            // 控制端口
+              17001,            // 代理端口
+              'TCP',            // 连接类型
+              clientId          // 客户端ID
+            ),
+            new Promise<number>((_, reject) => {
+              setTimeout(() => reject(new Error('startRemoteWorker 超时')), 20000); // 20秒超时
+            }),
+          ]);
+          console.log('startRemoteWorker 返回结果:', startWorkerResult);
+        } catch (error) {
+          console.error('❌ startRemoteWorker 调用失败:', error);
+          setSnackbarMessage(`连接服务器失败: ${error instanceof Error ? error.message : '未知错误'}`);
+          setSnackbarVisible(true);
+          return;
+        }
+
+        if (startWorkerResult !== 0) {
+          // 检查是否工作器已经在运行
+          try {
+            const status = await GpufModule.getRemoteWorkerStatus();
+            console.log('工作器状态:', status);
+
+            if (!(status && status.includes('running'))) {
+              console.error('❌ startRemoteWorker 失败');
+              setSnackbarMessage(`连接服务器失败 (错误代码: ${startWorkerResult})`);
+              setSnackbarVisible(true);
+              return;
+            }
+            console.log('工作器已在运行，继续下一步...');
+          } catch (error) {
+            console.error('❌ 获取工作器状态失败:', error);
+            setSnackbarMessage(`连接服务器失败 (错误代码: ${startWorkerResult})`);
+            setSnackbarVisible(true);
+            return;
+          }
+        }
+        console.log('✅ Step 2 完成: 远程工作器已启动');
+
+        // Step 3: 启动任务
+        console.log('Step 3: 调用 startRemoteWorkerTasks...');
+        let startTasksResult: number;
+        try {
+          startTasksResult = await Promise.race([
+            GpufModule.startRemoteWorkerTasks(),
+            new Promise<number>((_, reject) => {
+              setTimeout(() => reject(new Error('startRemoteWorkerTasks 超时')), 15000); // 15秒超时
+            }),
+          ]);
+          console.log('startRemoteWorkerTasks 返回结果:', startTasksResult);
+        } catch (error) {
+          console.error('❌ startRemoteWorkerTasks 调用失败:', error);
+          setSnackbarMessage(`启动任务失败: ${error instanceof Error ? error.message : '未知错误'}`);
+          setSnackbarVisible(true);
+          return;
+        }
+
+        if (startTasksResult !== 0) {
+          console.error('❌ startRemoteWorkerTasks 失败，返回码:', startTasksResult);
+          setSnackbarMessage(`启动任务失败 (错误代码: ${startTasksResult})`);
+          setSnackbarVisible(true);
+          return;
+        }
+        console.log('✅ Step 3 完成: 任务已启动');
+
+        // 所有步骤成功，设置新的分享状态
+        console.log('🎉 分享流程全部成功！');
+        modelStore.setSharedModel(model.id);
+        console.log('当前分享的模型ID:', modelStore.sharedModelId);
+        setSnackbarMessage('分享成功！');
+        setSnackbarVisible(true);
+
         console.log('=== handleShare 函数执行完成 ===');
       } catch (error) {
         console.error('❌ Error in handleShare:', error);
         console.error('错误详情:', error instanceof Error ? error.stack : error);
         const errorMessage = error instanceof Error ? error.message : '未知错误';
         setSnackbarMessage(`操作失败: ${errorMessage}`);
-        // 如果出错，仍然切换分享状态
-        modelStore.toggleModelShare(model.id);
         setSnackbarVisible(true);
         console.log('=== handleShare 函数执行完成（有错误）===');
+      } finally {
+        // 结束加载状态
+        setIsSharing(false);
       }
-    }, [model.id, model.isDownloaded]);
+    }, [model.id, model.isDownloaded, onNeedBindDevice]);
 
     // Helper function to get model type icon - updated sizes
     const getModelTypeIcon = () => {
@@ -496,13 +640,13 @@ export const ModelCard: React.FC<ModelCardProps> = observer(
                 styles.primaryActionButton,
                 storageOk
                   ? {
-                      backgroundColor: theme.colors.btnDownloadBg,
-                      borderColor: theme.colors.btnDownloadBorder,
-                    }
+                    backgroundColor: theme.colors.btnDownloadBg,
+                    borderColor: theme.colors.btnDownloadBorder,
+                  }
                   : {
-                      backgroundColor: theme.colors.surfaceDim,
-                      borderColor: theme.colors.outline,
-                    },
+                    backgroundColor: theme.colors.surfaceDim,
+                    borderColor: theme.colors.outline,
+                  },
               ]}
               textColor={theme.colors.btnDownloadText}>
               {l10n.models.modelCard.buttons.download}
@@ -563,12 +707,12 @@ export const ModelCard: React.FC<ModelCardProps> = observer(
       // Downloaded state - soft blue styling
       return (
         <View style={styles.actionButtonsRow}>
-          
+
 
           {/* Share Button - Device model sharing with status indication */}
           <Button
             testID="share-button"
-            icon={() => (
+            icon={isSharing ? undefined : () => (
               <ShareIcon
                 width={16}
                 height={16}
@@ -577,20 +721,25 @@ export const ModelCard: React.FC<ModelCardProps> = observer(
             )}
             mode={modelStore.sharedModelId === model.id ? "contained" : "outlined"}
             onPress={handleShare}
+            disabled={isSharing}
+            loading={isSharing}
             style={[
               styles.shareButton,
               modelStore.sharedModelId === model.id
                 ? {
-                    backgroundColor: theme.colors.primary,
-                    borderColor: theme.colors.primary,
-                  }
+                  backgroundColor: theme.colors.primary,
+                  borderColor: theme.colors.primary,
+                }
                 : {
-                    backgroundColor: theme.colors.surface,
-                    borderColor: theme.colors.primary,
-                  },
+                  backgroundColor: theme.colors.surface,
+                  borderColor: theme.colors.primary,
+                },
+              isSharing && {
+                opacity: 0.8,
+              },
             ]}
             textColor={modelStore.sharedModelId === model.id ? theme.colors.onPrimary : theme.colors.primary}>
-            {modelStore.sharedModelId === model.id ? "已分享" : "分享"}
+            {isSharing ? "连接中..." : (modelStore.sharedModelId === model.id ? "已分享" : "分享")}
           </Button>
           {renderModelLoadButton()}
 
@@ -849,7 +998,7 @@ export const ModelCard: React.FC<ModelCardProps> = observer(
                         .map(
                           skill =>
                             l10n.models.modelCapabilities[
-                              skill.labelKey as keyof typeof l10n.models.modelCapabilities
+                            skill.labelKey as keyof typeof l10n.models.modelCapabilities
                             ] || skill.labelKey,
                         )
                         .join(', ')}{' '}
@@ -1017,7 +1166,7 @@ export const ModelCard: React.FC<ModelCardProps> = observer(
               setSnackbarMessage('');
             },
           }}>
-          {snackbarMessage || 
+          {snackbarMessage ||
             (modelStore.sharedModelId === model.id
               ? "模型已设置为设备分享"
               : "模型分享已取消")}

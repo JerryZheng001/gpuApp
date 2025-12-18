@@ -123,7 +123,8 @@ class GpufModule(reactContext: ReactApplicationContext) :
   @ReactMethod
   fun startRemoteWorkerTasks(promise: Promise) {
     try {
-      val result = RemoteWorker.startRemoteWorkerTasks()
+      // 使用 0 表示不使用回调
+      val result = RemoteWorker.startRemoteWorkerTasks(0L)
       promise.resolve(result)
     } catch (e: Exception) {
       promise.reject("REMOTE_WORKER_START_TASKS_ERROR", e.message, e)

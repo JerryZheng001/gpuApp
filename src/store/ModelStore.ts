@@ -2249,6 +2249,12 @@ class ModelStore {
     });
   };
 
+  clearSharedModel = () => {
+    runInAction(() => {
+      this.sharedModelId = undefined;
+    });
+  };
+
   toggleModelShare = (modelId: string) => {
     runInAction(() => {
       if (this.sharedModelId === modelId) {

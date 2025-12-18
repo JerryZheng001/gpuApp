@@ -43,4 +43,46 @@ export const createStyles = (theme: Theme) =>
       color: theme.colors.onSurfaceVariant,
       textAlign: 'center',
     },
+    // Auth bar styles (consistent with Pals CompactAuthBar)
+    authBar: {
+      backgroundColor: theme.colors.surfaceContainerHigh,
+      paddingHorizontal: 16,
+      paddingVertical: 12,
+      borderBottomWidth: StyleSheet.hairlineWidth,
+      borderBottomColor: theme.colors.outline,
+    },
+    authBarContent: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      gap: 12,
+    },
+    authBarInfo: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 8,
+      flex: 1,
+    },
+    authBarText: {
+      fontSize: 13,
+      color: theme.colors.onSurfaceVariant,
+      flex: 1,
+      lineHeight: 18,
+    },
+    authBarActions: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 4,
+    },
+    authBarSignInButton: {
+      borderRadius: 20,
+      minWidth: 60,
+    },
+    authBarSignInLabel: {
+      fontSize: 12,
+      fontWeight: '600',
+    },
+    authBarDismissButton: {
+      margin: 0,
+    },
   });

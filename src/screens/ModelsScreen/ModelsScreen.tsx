@@ -14,9 +14,10 @@ import 'react-native-get-random-values';
 import {observer} from 'mobx-react-lite';
 import * as RNFS from '@dr.pogodin/react-native-fs';
 import {pick, types} from '@react-native-documents/picker';
-import {Portal, SegmentedButtons} from 'react-native-paper';
+import {Portal, SegmentedButtons, Button, IconButton, Text as PaperText} from 'react-native-paper';
 
 import {useTheme} from '../../hooks';
+import {LockIcon, XIcon} from '../../assets/icons';
 
 import {FABGroup} from './FABGroup';
 import {ModelCard} from './ModelCard';
@@ -27,9 +28,12 @@ import {
   DownloadErrorDialog,
   ErrorSnackbar,
   ModelSettingsSheet,
+  BindDeviceSheet,
+  MobileAuthSheet,
 } from '../../components';
 
 import {uiStore, modelStore, hfStore, UIStore} from '../../store';
+import {mobileAuthService, deviceService} from '../../services';
 
 import {L10nContext} from '../../utils';
 import {Model, ModelOrigin} from '../../utils/types';
@@ -43,6 +47,9 @@ export const ModelsScreen: React.FC = observer(() => {
   const [selectedModel, setSelectedModel] = useState<Model | undefined>();
   const [settingsVisible, setSettingsVisible] = useState(false);
   const [activeTab, setActiveTab] = useState<'local' | 'remote'>('local');
+  const [showBindDevice, setShowBindDevice] = useState(false);
+  const [showLoginBanner, setShowLoginBanner] = useState(true);
+  const [showAuth, setShowAuth] = useState(false);
 
   // Centralized error state tracking - derive directly from MobX stores
   const [activeError, setActiveError] = useState<ErrorState | null>(null);
@@ -50,6 +57,9 @@ export const ModelsScreen: React.FC = observer(() => {
 
   const theme = useTheme();
   const styles = createStyles(theme);
+
+  // 是否显示登录提示
+  const isAuthenticated = mobileAuthService.isAuthenticated;
 
   const filters = uiStore.pageStates.modelsScreen.filters;
   const expandedGroups = uiStore.pageStates.modelsScreen.expandedGroups;
@@ -314,6 +324,7 @@ export const ModelsScreen: React.FC = observer(() => {
               model={subItem}
               activeModelId={activeModelId}
               onOpenSettings={() => handleOpenSettings(subItem)}
+              onNeedBindDevice={() => setShowBindDevice(true)}
             />
           )}
         />
@@ -334,6 +345,46 @@ export const ModelsScreen: React.FC = observer(() => {
 
   return (
     <View style={styles.container}>
+      {/* 登录提示 - CompactAuthBar 风格 */}
+      {!isAuthenticated && showLoginBanner && (
+        <View style={styles.authBar}>
+          <View style={styles.authBarContent}>
+            <View style={styles.authBarInfo}>
+              <LockIcon
+                stroke={theme.colors.onSurfaceVariant}
+                width={16}
+                height={16}
+              />
+              <PaperText style={styles.authBarText}>
+                登录后才能分享模型算力
+              </PaperText>
+            </View>
+            <View style={styles.authBarActions}>
+              <Button
+                mode="contained"
+                onPress={() => setShowAuth(true)}
+                style={styles.authBarSignInButton}
+                labelStyle={styles.authBarSignInLabel}
+                compact>
+                登录
+              </Button>
+              <IconButton
+                icon={() => (
+                  <XIcon
+                    stroke={theme.colors.onSurfaceVariant}
+                    width={16}
+                    height={16}
+                  />
+                )}
+                size={20}
+                onPress={() => setShowLoginBanner(false)}
+                style={styles.authBarDismissButton}
+              />
+            </View>
+          </View>
+        </View>
+      )}
+
       {/* Show Error Snackbar only if no dialog is visible */}
       {!isShowingErrorDialog && activeError && (
         <ErrorSnackbar
@@ -420,6 +471,22 @@ export const ModelsScreen: React.FC = observer(() => {
         isVisible={settingsVisible}
         onClose={handleCloseSettings}
         model={selectedModel}
+      />
+
+      {/* 绑定设备弹窗 */}
+      <BindDeviceSheet
+        isVisible={showBindDevice}
+        onClose={() => setShowBindDevice(false)}
+        onSuccess={() => {
+          // 绑定成功后可以继续分享流程
+          console.log('设备绑定成功，client_id:', deviceService.clientId);
+        }}
+      />
+
+      {/* 登录弹窗 */}
+      <MobileAuthSheet
+        isVisible={showAuth}
+        onClose={() => setShowAuth(false)}
       />
     </View>
   );

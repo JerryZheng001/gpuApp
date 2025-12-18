@@ -18,6 +18,10 @@ export type {
   MobileSignupResponse,
 } from './mobile-auth';
 
+// Device Services (设备绑定)
+export {deviceService} from './device';
+export type {DeviceInfo, BindDeviceResponse} from './device';
+
 // Types
 export type {AuthState, Profile} from './palshub/AuthService';
 export type {ErrorInfo} from './palshub/ErrorHandler';
