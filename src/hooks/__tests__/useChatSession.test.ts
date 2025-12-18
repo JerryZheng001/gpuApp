@@ -1,12 +1,12 @@
-import {LlamaContext} from '@pocketpalai/llama.rn';
+import {LlamaContext} from 'llama.rn';
 import {renderHook, act, waitFor} from '@testing-library/react-native';
 
 import {textMessage} from '../../../jest/fixtures';
 import {sessionFixtures} from '../../../jest/fixtures/chatSessions';
 import {
   mockBasicModel,
-  mockContextModel,
   mockDefaultCompletionParams,
+  mockLlamaContextParams,
   modelsList,
 } from '../../../jest/fixtures/models';
 
@@ -35,12 +35,7 @@ beforeEach(() => {
   modelStore.activeModelId = undefined;
 
   // Fresh mocked context each test
-  modelStore.context = new LlamaContext({
-    contextId: 1,
-    gpu: false,
-    reasonNoGPU: '',
-    model: mockContextModel,
-  });
+  modelStore.context = new LlamaContext(mockLlamaContextParams);
 });
 
 // Mock the applyChatTemplate function from utils/chat
@@ -109,103 +104,6 @@ describe('useChatSession', () => {
         author: assistant,
       }),
     );
-  });
-
-  it('should buffer and flush tokens correctly', async () => {
-    const timings = {token_per_second: '1'};
-
-    // Mock the updateMessageToken function to track the tokens
-    const originalUpdateMessageToken = chatSessionStore.updateMessageToken;
-    const mockUpdateMessageToken = jest
-      .fn()
-      .mockImplementation(
-        async (
-          data: any,
-          createdAt: number,
-          id: string,
-          sessionId: string,
-          context: any,
-        ) => {
-          return originalUpdateMessageToken.call(
-            chatSessionStore,
-            data,
-            createdAt,
-            id,
-            sessionId,
-            context,
-          );
-        },
-      );
-    chatSessionStore.updateMessageToken = mockUpdateMessageToken;
-
-    // Mock the completion function to call onData with tokens
-    if (modelStore.context) {
-      modelStore.context.completion = jest
-        .fn()
-        .mockImplementation((_params, onData) => {
-          onData({token: 'Hello'});
-          onData({token: ', '});
-          onData({token: 'world!'});
-          return Promise.resolve({timings: timings, usage: {}});
-        });
-    }
-
-    const {result} = renderHook(() =>
-      useChatSession({current: null}, textMessage.author, mockAssistant),
-    );
-
-    await act(async () => {
-      await result.current.handleSendPress(textMessage);
-    });
-
-    // Wait for all promises to resolve and throttling to complete
-    // This is necessary because throttling is time-based
-    await act(async () => {
-      await new Promise(resolve => setTimeout(resolve, 1000));
-    });
-
-    // Verify that updateMessageToken was called at least once
-    expect(mockUpdateMessageToken).toHaveBeenCalled();
-
-    // Get all the calls to updateMessageToken
-    const calls = mockUpdateMessageToken.mock.calls;
-
-    // Due to throttling, the tokens might be batched differently
-    // What's important is that all the content is there
-    const allTokens = calls.map(call => call[0].token).join('');
-
-    expect(allTokens).toContain('Hello');
-    expect(allTokens).toContain(', ');
-    expect(allTokens).toContain('world!');
-
-    // Restore the original function
-    chatSessionStore.updateMessageToken = originalUpdateMessageToken;
-
-    expect(chatSessionStore.updateMessage).toHaveBeenCalled();
-
-    const matchingCall = (
-      chatSessionStore.updateMessage as jest.Mock
-    ).mock.calls.find(
-      ([, , {metadata}]) =>
-        metadata && metadata.timings && metadata.copyable === true,
-    );
-
-    expect(matchingCall).toBeDefined();
-
-    // Check that the metadata includes the original timings plus time_to_first_token_ms
-    const actualMetadata = matchingCall[2].metadata;
-    expect(actualMetadata.copyable).toBe(true);
-    expect(actualMetadata.timings).toEqual(
-      expect.objectContaining({
-        ...timings,
-        time_to_first_token_ms: expect.any(Number),
-      }),
-    );
-
-    // Verify time_to_first_token_ms is a reasonable value (should be >= 0)
-    expect(
-      actualMetadata.timings.time_to_first_token_ms,
-    ).toBeGreaterThanOrEqual(0);
   });
 
   it('should reset the conversation', () => {

@@ -22,6 +22,7 @@ module.exports = {
   },
   moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json', 'node'],
   setupFiles: ['./jest/setup.ts'],
+  setupFilesAfterEnv: ['./jest/setupFilesAfterEnv.ts'],
   transformIgnorePatterns: [
     'node_modules/(?!(@supabase|isows|@react-native-google-signin|@flyerhq|@react-native|react-native|uuid|react-native-reanimated|react-native-gesture-handler|react-native-vector-icons|react-native-image-viewing|react-native-parsed-text|@react-navigation/.*|@react-native-masked-view/masked-view|react-native-linear-gradient|react-native-picker-select|react-native-paper|react-native-keyboard-controller|react-native-drawer-layout|marked|react-native-code-highlighter|react-syntax-highlighter|trim-newlines|react-native-worklets)/)',
   ],
@@ -32,7 +33,7 @@ module.exports = {
   moduleNameMapper: {
     '@react-native-async-storage/async-storage':
       '<rootDir>/__mocks__/external/@react-native-async-storage/async-storage.js',
-    '@pocketpalai/llama.rn': '<rootDir>/__mocks__/external/llama.rn.ts',
+    'llama.rn': '<rootDir>/__mocks__/external/llama.rn.ts',
     'react-dom': '<rootDir>/__mocks__/external/react-dom.js',
     'react-native-device-info':
       '<rootDir>/__mocks__/external/react-native-device-info.js',
