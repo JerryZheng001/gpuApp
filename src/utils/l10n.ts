@@ -2813,6 +2813,8 @@ export const l10n = {
         availableToUse: '可使用',
         availableToDownload: '可下载',
         useAddButtonForMore: '点击 + 按钮添加更多模型',
+        comingSoon: 'Coming Soon',
+        remoteModelsComingSoon: '远程模型功能即将上线，敬请期待',
       },
       vision: '视觉',
       mmproj: '投影仪',

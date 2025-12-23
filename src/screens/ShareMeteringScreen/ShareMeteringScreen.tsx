@@ -109,7 +109,7 @@ export const ShareMeteringScreen: React.FC = observer(() => {
         clientId, // 传入可选的 clientID
       );
 
-      console.log('配额记录响应:', response);
+      console.log('配额记录响应:', response, mobileAuthService.user.id);
 
       // 检查响应是否成功（code 200 或 success true）
       const isSuccess = response.code === 200 || response.success === true;

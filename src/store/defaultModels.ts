@@ -3,7 +3,7 @@ import {chatTemplates} from '../utils/chat';
 import {defaultCompletionParams} from '../utils/completionSettingsVersions';
 import {Platform} from 'react-native';
 
-export const MODEL_LIST_VERSION = 13;
+export const MODEL_LIST_VERSION = 14;
 
 const iosOnlyModels: Model[] = [];
 
@@ -246,11 +246,11 @@ const crossPlatformModels: Model[] = [
     params: 1235814432,
     isDownloaded: false,
     downloadUrl:
-      'https://huggingface.co/hugging-quants/Llama-3.2-1B-Instruct-Q8_0-GGUF/resolve/main/llama-3.2-1b-instruct-q8_0.gguf',
+      'https://modelscope.cn/models/unsloth/Llama-3.2-1B-Instruct-GGUF/resolve/master/Llama-3.2-1B-Instruct-Q8_0.gguf',
     hfUrl:
-      'https://huggingface.co/hugging-quants/Llama-3.2-1B-Instruct-Q8_0-GGUF',
+      'https://modelscope.cn/models/unsloth/Llama-3.2-1B-Instruct-GGUF',
     progress: 0,
-    filename: 'llama-3.2-1b-instruct-q8_0.gguf',
+    filename: 'Llama-3.2-1B-Instruct-Q8_0.gguf',
     isLocal: false,
     origin: ModelOrigin.PRESET,
     defaultChatTemplate: {...chatTemplates.llama32},
@@ -268,8 +268,8 @@ const crossPlatformModels: Model[] = [
     defaultStopWords: ['<|eot_id|>'],
     stopWords: ['<|eot_id|>'],
     hfModelFile: {
-      rfilename: 'llama-3.2-1b-instruct-q8_0.gguf',
-      url: 'https://huggingface.co/hugging-quants/Llama-3.2-1B-Instruct-Q8_0-GGUF/resolve/main/llama-3.2-1b-instruct-q8_0.gguf',
+      rfilename: 'Llama-3.2-1B-Instruct-Q8_0.gguf',
+      url: 'https://modelscope.cn/models/unsloth/Llama-3.2-1B-Instruct-GGUF/resolve/master/Llama-3.2-1B-Instruct-Q8_0.gguf',
       size: 1321079200,
       oid: '4d5402369568f0bd157d8454270821341e833722',
       lfs: {

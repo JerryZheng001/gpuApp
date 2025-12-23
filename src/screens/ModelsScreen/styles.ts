@@ -38,10 +38,30 @@ export const createStyles = (theme: Theme) =>
       alignItems: 'center',
       padding: 32,
     },
+    emptyStateIconContainer: {
+      marginBottom: 24,
+      opacity: 0.6,
+    },
+    emptyStateTitle: {
+      fontSize: 24,
+      fontWeight: '600',
+      color: theme.colors.onSurface,
+      textAlign: 'center',
+      marginBottom: 8,
+      letterSpacing: 0.5,
+    },
     emptyStateText: {
       fontSize: 16,
       color: theme.colors.onSurfaceVariant,
       textAlign: 'center',
+    },
+    emptyStateSubtitle: {
+      fontSize: 14,
+      color: theme.colors.onSurfaceVariant,
+      textAlign: 'center',
+      marginTop: 8,
+      lineHeight: 20,
+      opacity: 0.7,
     },
     // Auth bar styles (consistent with Pals CompactAuthBar)
     authBar: {

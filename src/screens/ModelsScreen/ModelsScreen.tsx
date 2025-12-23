@@ -17,7 +17,7 @@ import {pick, types} from '@react-native-documents/picker';
 import {Portal, SegmentedButtons, Button, IconButton, Text as PaperText} from 'react-native-paper';
 
 import {useTheme} from '../../hooks';
-import {LockIcon, XIcon} from '../../assets/icons';
+import {LockIcon, XIcon, ModelIcon, CloudIcon} from '../../assets/icons';
 
 import {FABGroup} from './FABGroup';
 import {ModelCard} from './ModelCard';
@@ -413,9 +413,19 @@ export const ModelsScreen: React.FC = observer(() => {
 
       {showEmptyState ? (
         <View style={styles.emptyStateContainer}>
-          <Text style={styles.emptyStateText}>
-            {l10n.models.labels.useAddButtonForMore ||
-              'Use + button to find more models'}
+          <View style={styles.emptyStateIconContainer}>
+            <CloudIcon
+              stroke={theme.colors.primary}
+              width={64}
+              height={64}
+            />
+          </View>
+          <Text style={styles.emptyStateTitle}>
+            {l10n.models.labels.comingSoon || 'Coming Soon'}
+          </Text>
+          <Text style={styles.emptyStateSubtitle}>
+            {l10n.models.labels.remoteModelsComingSoon ||
+              '远程模型功能即将上线，敬请期待'}
           </Text>
         </View>
       ) : (
