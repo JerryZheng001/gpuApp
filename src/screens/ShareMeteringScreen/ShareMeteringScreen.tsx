@@ -18,6 +18,7 @@ import {
   ChevronDownIcon,
 } from '../../assets/icons';
 import {mobileAuthService} from '../../services/mobile-auth';
+import {deviceService} from '../../services/device';
 import {getQuotaRecords, QuotaRecord} from '../../services/mobile-auth/MobileAuthApi';
 
 export const ShareMeteringScreen: React.FC = observer(() => {
@@ -28,11 +29,46 @@ export const ShareMeteringScreen: React.FC = observer(() => {
 
   const [deviceMenuVisible, setDeviceMenuVisible] = useState(false);
   const [selectedDevice, setSelectedDevice] = useState('全部设备');
+  const [selectedClientId, setSelectedClientId] = useState<string | undefined>(undefined);
+  const [devices, setDevices] = useState<Array<{client_id: string; client_name: string}>>([]);
   const [quotaRecords, setQuotaRecords] = useState<QuotaRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [page, setPage] = useState(1);
   const [pageSize] = useState(10);
+
+  // 获取设备列表
+  const fetchDeviceList = useCallback(async () => {
+    // 检查是否已登录
+    if (!mobileAuthService.isAuthenticated || !mobileAuthService.user) {
+      console.log('❌ 未登录，无法获取设备列表');
+      return;
+    }
+
+    try {
+      console.log('开始获取设备列表...');
+      const response = await deviceService.getClientList(
+        String(mobileAuthService.user.id),
+      );
+
+      console.log('设备列表响应:', response);
+
+      if (response.success && response.data?.devices) {
+        const deviceList = response.data.devices.map((device) => ({
+          client_id: device.client_id,
+          client_name: device.client_name,
+        }));
+        setDevices(deviceList);
+        console.log('✅ 成功获取设备列表，数量:', deviceList.length);
+      } else {
+        console.warn('⚠️ 获取设备列表失败:', response.message);
+        setDevices([]);
+      }
+    } catch (err) {
+      console.error('获取设备列表错误:', err);
+      setDevices([]);
+    }
+  }, []);
 
   // 获取配额记录
   const fetchQuotaRecords = useCallback(async () => {
@@ -61,11 +97,16 @@ export const ShareMeteringScreen: React.FC = observer(() => {
       setError(null);
 
       console.log('开始获取配额记录...');
+      
+      // 使用选中的 clientID（如果选择了特定设备）
+      const clientId = selectedClientId || undefined;
+      
       const response = await getQuotaRecords(
         session,
         mobileAuthService.user.id,
         page,
         pageSize,
+        clientId, // 传入可选的 clientID
       );
 
       console.log('配额记录响应:', response);
@@ -97,17 +138,19 @@ export const ShareMeteringScreen: React.FC = observer(() => {
     } finally {
       setLoading(false);
     }
-  }, [page, pageSize]);
+  }, [page, pageSize, selectedClientId]);
 
   // 初始加载和页面获得焦点时刷新
   useEffect(() => {
+    fetchDeviceList();
     fetchQuotaRecords();
-  }, [fetchQuotaRecords]);
+  }, [fetchDeviceList, fetchQuotaRecords]);
 
   useFocusEffect(
     useCallback(() => {
+      fetchDeviceList();
       fetchQuotaRecords();
-    }, [fetchQuotaRecords]),
+    }, [fetchDeviceList, fetchQuotaRecords]),
   );
 
   return (
@@ -116,7 +159,7 @@ export const ShareMeteringScreen: React.FC = observer(() => {
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}>
         {/* Filter Buttons */}
-        {/* <View style={styles.filterContainer}>
+        <View style={styles.filterContainer}>
           <Menu
             visible={deviceMenuVisible}
             onDismiss={() => setDeviceMenuVisible(false)}
@@ -135,26 +178,32 @@ export const ShareMeteringScreen: React.FC = observer(() => {
             <Menu.Item
               onPress={() => {
                 setSelectedDevice('全部设备');
+                setSelectedClientId(undefined);
                 setDeviceMenuVisible(false);
+                // 重新获取配额记录
+                setTimeout(() => {
+                  fetchQuotaRecords();
+                }, 100);
               }}
               title="全部设备"
             />
-            <Menu.Item
-              onPress={() => {
-                setSelectedDevice('我的iPhone 14');
-                setDeviceMenuVisible(false);
-              }}
-              title="我的iPhone 14"
-            />
-            <Menu.Item
-              onPress={() => {
-                setSelectedDevice('家用安卓平板');
-                setDeviceMenuVisible(false);
-              }}
-              title="家用安卓平板"
-            />
+            {devices.map((device) => (
+              <Menu.Item
+                key={device.client_id}
+                onPress={() => {
+                  setSelectedDevice(device.client_name);
+                  setSelectedClientId(device.client_id);
+                  setDeviceMenuVisible(false);
+                  // 重新获取配额记录
+                  setTimeout(() => {
+                    fetchQuotaRecords();
+                  }, 100);
+                }}
+                title={device.client_name}
+              />
+            ))}
             </Menu>
-        </View> */}
+        </View>
 
         {/* Data Table */}
         <Card style={styles.tableCard}>
@@ -173,12 +222,7 @@ export const ShareMeteringScreen: React.FC = observer(() => {
                 ellipsizeMode="tail">
                 设备名称
               </Text>
-              <Text
-                style={[styles.tableHeaderText, styles.colDuration]}
-                numberOfLines={1}
-                ellipsizeMode="tail">
-                分享时长
-              </Text>
+
               <Text
                 style={[styles.tableHeaderText, styles.colCompute]}
                 numberOfLines={1}

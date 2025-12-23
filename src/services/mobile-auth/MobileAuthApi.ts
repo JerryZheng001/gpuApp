@@ -214,18 +214,25 @@ export async function mobileSignup(
  * @param userId 登录接口返回的 user id
  * @param page 页码
  * @param pageSize 每页数量
+ * @param clientID 设备ID（可选）
  */
 export async function getQuotaRecords(
   session: string,
   userId: number | string,
   page: number = 1,
   pageSize: number = 10,
+  clientID?: string,
 ): Promise<QuotaRecordsResponse> {
   try {
     const params = new URLSearchParams({
       page: String(page),
       pageSize: String(pageSize),
     });
+    
+    // 如果提供了 clientID，添加到查询参数中
+    if (clientID) {
+      params.append('clientID', clientID);
+    }
     
     const url = `${API_BASE_URL}/api/user/supply/device/quota_records?${params.toString()}`;
     
@@ -234,6 +241,7 @@ export async function getQuotaRecords(
     console.log('Method: GET');
     console.log('Session:', session);
     console.log('User ID:', userId);
+    console.log('Client ID:', clientID || '未提供');
     
     const response = await fetch(url, {
       method: 'GET',
