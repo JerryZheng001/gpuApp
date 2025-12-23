@@ -27,6 +27,7 @@ export interface MobileAuthState {
 
 class MobileAuthService {
   user: MobileUserData | null = null;
+  session: string | null = null; // 保存登录后的 session
   isLoading: boolean = false;
   isAuthenticated: boolean = false;
   error: string | null = null;
@@ -35,13 +36,20 @@ class MobileAuthService {
   countdown: number = 0;
 
   private countdownTimer: ReturnType<typeof setInterval> | null = null;
+  private persistStore: any = null; // 保存 persistStore 引用
 
   constructor() {
     makeAutoObservable(this);
     makePersistable(this, {
       name: 'MobileAuthService',
-      properties: ['user', 'isAuthenticated'],
+      properties: ['user', 'isAuthenticated', 'session'],
       storage: AsyncStorage,
+    }).then(store => {
+      this.persistStore = store;
+      console.log('MobileAuthService: 持久化初始化完成');
+      console.log('恢复的 session:', this.session);
+      console.log('恢复的 user:', this.user);
+      console.log('恢复的 isAuthenticated:', this.isAuthenticated);
     });
 
     console.log('MobileAuthService: 初始化完成');
@@ -129,6 +137,43 @@ class MobileAuthService {
         if (response.success && response.data) {
           this.user = response.data;
           this.isAuthenticated = true;
+          // 保存 session
+          if (response.session) {
+            this.session = response.session;
+            console.log('✅ Session 已保存到内存:', response.session);
+            console.log('当前 MobileAuthService 状态:', {
+              session: this.session,
+              user: this.user,
+              isAuthenticated: this.isAuthenticated,
+            });
+            
+            // makePersistable 会自动保存，但我们可以验证一下
+            // 延迟一小段时间后验证持久化是否成功
+            setTimeout(async () => {
+              try {
+                const stored = await AsyncStorage.getItem('MobileAuthService');
+                if (stored) {
+                  const parsed = JSON.parse(stored);
+                  console.log('验证持久化的数据:', {
+                    session: parsed.session,
+                    user: parsed.user,
+                    isAuthenticated: parsed.isAuthenticated,
+                  });
+                  if (parsed.session !== this.session) {
+                    console.error('❌ Session 持久化不一致！内存:', this.session, '存储:', parsed.session);
+                  } else {
+                    console.log('✅ Session 持久化验证成功');
+                  }
+                } else {
+                  console.warn('⚠️ 未找到持久化数据');
+                }
+              } catch (err) {
+                console.error('验证持久化数据失败:', err);
+              }
+            }, 200);
+          } else {
+            console.warn('⚠️ 未获取到 session');
+          }
           console.log('登录成功:', response.data);
           
           // 登录成功后，尝试恢复设备信息
@@ -170,6 +215,7 @@ class MobileAuthService {
   signOut() {
     runInAction(() => {
       this.user = null;
+      this.session = null; // 清除 session
       this.isAuthenticated = false;
       this.error = null;
       this.codeSent = false;

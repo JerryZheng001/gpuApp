@@ -37,7 +37,7 @@ interface Device {
     storage_usage: number;
     health: number;
     client_status: string;
-  };
+};
 }
 
 const mockHistoryDevices: Device[] = [

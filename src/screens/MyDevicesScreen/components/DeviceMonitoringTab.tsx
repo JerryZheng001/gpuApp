@@ -382,11 +382,11 @@ export const DeviceMonitoringTab: React.FC<DeviceMonitoringTabProps> = ({
                     styles.chevronContainer,
                     { transform: [{ rotate: rotateInterpolate }] },
                   ]}>
-                  <ChevronDownIcon
+              <ChevronDownIcon
                     width={10}
                     height={18}
                     stroke={deviceMenuVisible ? theme.colors.primary : theme.colors.onSurfaceVariant}
-                  />
+              />
                 </Animated.View>
               </View>
             </TouchableOpacity>
@@ -394,16 +394,16 @@ export const DeviceMonitoringTab: React.FC<DeviceMonitoringTabProps> = ({
           contentStyle={styles.menuContent}
           style={styles.menu}>
           {allDevices.map((dev, index) => (
-            <Menu.Item
+          <Menu.Item
               key={dev.id}
-              onPress={() => {
+            onPress={() => {
                 setSelectedDevice(dev.name);
-                setDeviceMenuVisible(false);
+              setDeviceMenuVisible(false);
                 // 通知父组件切换设备
                 if (onDeviceChange) {
                   onDeviceChange(dev);
                 }
-              }}
+            }}
               title={dev.name}
               titleStyle={[
                 styles.menuItemText,
@@ -413,7 +413,7 @@ export const DeviceMonitoringTab: React.FC<DeviceMonitoringTabProps> = ({
                 styles.menuItemContainer,
                 selectedDevice === dev.name && styles.menuItemActive,
               ]}
-            />
+          />
           ))}
         </Menu>
 
