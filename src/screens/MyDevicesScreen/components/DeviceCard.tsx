@@ -77,7 +77,7 @@ export const DeviceCard: React.FC<DeviceCardProps> = ({
         {/* Metrics */}
         <View style={styles.metrics}>
           <View style={styles.metricItem}>
-            <Text style={styles.metricLabel}>当前算力</Text>
+            <Text style={styles.metricLabel}>内存占用</Text>
             <Text style={styles.metricValue}>{device.currentCompute}</Text>
           </View>
           <View style={styles.metricItem}>
@@ -85,24 +85,21 @@ export const DeviceCard: React.FC<DeviceCardProps> = ({
             <Text style={styles.metricValue}>{device.cumulativeDuration}</Text>
           </View>
           <View style={styles.metricItem}>
-            <Text style={styles.metricLabel}>累计收益</Text>
+            <Text style={styles.metricLabel}>健康状态</Text>
             <Text style={[styles.metricValue, styles.revenueValue]}>
               {device.cumulativeRevenue}
             </Text>
           </View>
         </View>
 
-        {/* Actions */}
-        <View style={styles.actions}>
-          <TouchableOpacity onPress={onDetailsPress}>
-            <Text style={styles.detailsLink}>详情</Text>
-          </TouchableOpacity>
+        {/* Actions - 暂停分享按钮已隐藏 */}
+        {/* <View style={styles.actions}>
           <TouchableOpacity
             style={styles.pauseButton}
             onPress={onPausePress}>
             <Text style={styles.pauseButtonText}>暂停分享</Text>
           </TouchableOpacity>
-        </View>
+        </View> */}
       </Card.Content>
     </Card>
   );

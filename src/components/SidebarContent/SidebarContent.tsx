@@ -129,7 +129,8 @@ export const SidebarContent: React.FC<DrawerContentComponentProps> = observer(
                 onPress={() => props.navigation.navigate(ROUTES.SHARE_METERING)}
                 style={styles.menuDrawerItem}
               />
-              <Drawer.Item
+              {/* 收益账单菜单项已隐藏 */}
+              {/* <Drawer.Item
                 label={l10n.components.sidebarContent.menuItems.revenueBill || '收益账单'}
                 icon={() => (
                   <ShoppingCartIcon
@@ -140,7 +141,7 @@ export const SidebarContent: React.FC<DrawerContentComponentProps> = observer(
                 )}
                 onPress={() => props.navigation.navigate(ROUTES.REVENUE_BILL)}
                 style={styles.menuDrawerItem}
-              />
+              /> */}
               <Drawer.Item
                 label={(l10n.components.sidebarContent.menuItems as any).myDevices || '我的设备'}
                 icon={() => (

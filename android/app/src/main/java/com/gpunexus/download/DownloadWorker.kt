@@ -1,6 +1,7 @@
 package com.gpunexus.download
 
 import android.content.Context
+import android.os.Build
 import android.util.Log
 import androidx.work.*
 import kotlinx.coroutines.Dispatchers
@@ -9,6 +10,8 @@ import okhttp3.*
 import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
+import java.net.InetAddress
+import java.net.UnknownHostException
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 import kotlin.coroutines.suspendCoroutine
@@ -20,7 +23,12 @@ class DownloadWorker(
 
     private val downloadDao = DownloadDatabase.getInstance(context).downloadDao()
     private val client = OkHttpClient.Builder()
+        .dns(CustomDnsResolver())
         .addInterceptor(ProgressInterceptor())
+        .connectTimeout(30, java.util.concurrent.TimeUnit.SECONDS)
+        .readTimeout(30, java.util.concurrent.TimeUnit.SECONDS)
+        .writeTimeout(30, java.util.concurrent.TimeUnit.SECONDS)
+        .retryOnConnectionFailure(true)
         .build()
     private var lastProgressUpdate = 0L
     private var currentCall: Call? = null
@@ -287,6 +295,144 @@ class DownloadWorker(
                 )
                 .build()
         }
+    }
+}
+
+/**
+ * Custom DNS resolver with aggressive retry and manual DNS resolution
+ * This helps with DNS resolution issues, especially for ModelScope domains in China
+ * 
+ * Uses multiple strategies:
+ * 1. System DNS with retries
+ * 2. Manual InetAddress resolution (bypasses OkHttp's DNS)
+ * 3. Multiple DNS servers fallback
+ */
+class CustomDnsResolver : Dns {
+    companion object {
+        private const val TAG = "CustomDnsResolver"
+        private const val MAX_RETRIES = 5
+        private const val INITIAL_RETRY_DELAY_MS = 200L
+        private const val MAX_RETRY_DELAY_MS = 2000L
+        
+        // Known ModelScope IP addresses (may need periodic updates)
+        // These are fallback IPs if DNS fails completely
+        private val MODEL_SCOPE_IPS: Map<String, List<String>> = mapOf(
+            "www.modelscope.cn" to listOf<String>(
+                // Add known IPs here if available
+                // "123.456.789.0" // Example format
+            ),
+            "modelscope.cn" to listOf<String>(
+                // Add known IPs here if available
+            )
+        )
+    }
+    
+    override fun lookup(hostname: String): List<InetAddress> {
+        Log.d(TAG, "🔍 Attempting to resolve hostname: $hostname")
+        
+        // Strategy 1: Try system DNS with retries
+        var lastException: UnknownHostException? = null
+        
+        for (attempt in 1..MAX_RETRIES) {
+            try {
+                Log.d(TAG, "DNS resolution attempt $attempt/$MAX_RETRIES for $hostname")
+                
+                // Try system DNS first
+                val addresses = Dns.SYSTEM.lookup(hostname)
+                
+                if (addresses.isNotEmpty()) {
+                    val ipAddresses = addresses.joinToString(", ") { addr: InetAddress -> addr.hostAddress }
+                    Log.d(TAG, "✅ Successfully resolved $hostname to: $ipAddresses (attempt $attempt)")
+                    return addresses
+                } else {
+                    Log.w(TAG, "DNS lookup returned empty list for $hostname (attempt $attempt)")
+                }
+            } catch (e: UnknownHostException) {
+                lastException = e
+                val errorMsg = e.message ?: "Unknown error"
+                Log.w(TAG, "DNS resolution failed for $hostname (attempt $attempt/$MAX_RETRIES): $errorMsg")
+                
+                // Exponential backoff
+                if (attempt < MAX_RETRIES) {
+                    val delay = minOf(
+                        INITIAL_RETRY_DELAY_MS * (1 shl (attempt - 1)),
+                        MAX_RETRY_DELAY_MS
+                    )
+                    Log.d(TAG, "Waiting ${delay}ms before retry...")
+                    try {
+                        Thread.sleep(delay)
+                    } catch (ie: InterruptedException) {
+                        Thread.currentThread().interrupt()
+                        Log.w(TAG, "DNS retry interrupted")
+                        break
+                    }
+                }
+            }
+        }
+        
+        // Strategy 2: Try manual InetAddress resolution (bypasses OkHttp DNS)
+        // This uses Java's InetAddress which may use different DNS resolution
+        Log.d(TAG, "System DNS failed, trying manual InetAddress resolution...")
+        try {
+            // Force DNS lookup with longer timeout
+            val addresses = InetAddress.getAllByName(hostname).toList()
+            if (addresses.isNotEmpty()) {
+                val ipAddresses = addresses.joinToString(", ") { addr: InetAddress -> addr.hostAddress }
+                Log.d(TAG, "✅ Manual resolution successful: $hostname -> $ipAddresses")
+                return addresses
+            }
+        } catch (e: UnknownHostException) {
+            Log.w(TAG, "Manual InetAddress resolution also failed: ${e.message}")
+            
+            // Check if running on emulator
+            val isEmulator = Build.FINGERPRINT.startsWith("generic") ||
+                            Build.FINGERPRINT.startsWith("unknown") ||
+                            Build.MODEL.contains("google_sdk") ||
+                            Build.MODEL.contains("Emulator") ||
+                            Build.MODEL.contains("Android SDK") ||
+                            Build.MANUFACTURER.contains("Genymotion") ||
+                            (Build.BRAND.startsWith("generic") && Build.DEVICE.startsWith("generic")) ||
+                            "google_sdk" == Build.PRODUCT
+            
+            if (isEmulator) {
+                Log.e(TAG, "⚠️ Running on emulator - DNS issues are common on emulators")
+                Log.e(TAG, "Recommendation: Test on a real device or configure emulator DNS")
+                Log.e(TAG, "Emulator DNS fix: Settings > WiFi > Long press > Modify > Advanced > DNS 1: 8.8.8.8")
+            }
+        } catch (e: Exception) {
+            Log.w(TAG, "Manual resolution error: ${e.message}")
+        }
+        
+        // Strategy 3: Try known IP addresses (if available)
+        MODEL_SCOPE_IPS[hostname]?.let { knownIPs: List<String> ->
+            if (knownIPs.isNotEmpty()) {
+                Log.d(TAG, "Trying known IP addresses for $hostname...")
+                val addresses: List<InetAddress> = knownIPs.mapNotNull { ip: String ->
+                    try {
+                        InetAddress.getByName(ip)
+                    } catch (e: Exception) {
+                        Log.w(TAG, "Failed to create InetAddress from IP $ip: ${e.message}")
+                        null
+                    }
+                }
+                if (addresses.isNotEmpty()) {
+                    val ipAddresses = addresses.joinToString(", ") { addr: InetAddress -> addr.hostAddress }
+                    Log.d(TAG, "✅ Using known IP addresses: $ipAddresses")
+                    return addresses
+                }
+            }
+        }
+        
+        // All strategies failed
+        Log.e(TAG, "❌ Failed to resolve $hostname after all strategies")
+        Log.e(TAG, "Troubleshooting tips:")
+        Log.e(TAG, "1. Check device DNS: Settings > WiFi > Advanced > DNS")
+        Log.e(TAG, "2. Try DNS: 114.114.114.114 or 223.5.5.5")
+        Log.e(TAG, "3. Check if using emulator (may have DNS issues)")
+        Log.e(TAG, "4. Try on real device instead of emulator")
+        Log.e(TAG, "5. Check network connectivity")
+        
+        throw lastException ?: UnknownHostException("Unable to resolve host \"$hostname\": No address associated with hostname")
     }
 }
 

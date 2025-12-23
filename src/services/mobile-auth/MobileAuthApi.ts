@@ -39,22 +39,38 @@ export async function sendVerifyCode(
   phoneNumber: string,
 ): Promise<SendCodeResponse> {
   try {
-    console.log('发送验证码请求:', phoneNumber);
-    const response = await fetch(`${API_BASE_URL}/api/sms/sendverifyCode`, {
+    const url = `${API_BASE_URL}/api/sms/sendverifyCode`;
+    const requestBody = {
+      phone_num: phoneNumber,
+    };
+    
+    // 详细的请求日志（可在 Chrome DevTools Network 标签中查看）
+    console.log('=== 发送验证码请求 ===');
+    console.log('URL:', url);
+    console.log('Method: POST');
+    console.log('Body:', requestBody);
+    
+    const response = await fetch(url, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({
-        phone_num: phoneNumber,
-      }),
+      body: JSON.stringify(requestBody),
     });
 
+    // 响应日志
+    console.log('=== 发送验证码响应 ===');
+    console.log('Status:', response.status);
+    console.log('Status Text:', response.statusText);
+    
     const data = await response.json();
-    console.log('发送验证码响应:', data);
+    console.log('Response Data:', data);
     return data;
   } catch (error) {
-    console.error('发送验证码失败:', error);
+    console.error('=== 发送验证码失败 ===');
+    console.error('Error:', error);
+    console.error('Error Type:', error instanceof Error ? error.constructor.name : typeof error);
+    console.error('Error Message:', error instanceof Error ? error.message : String(error));
     return {
       success: false,
       message:

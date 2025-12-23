@@ -82,7 +82,7 @@ export const DeviceHistoryTab: React.FC<DeviceHistoryTabProps> = ({
                 <Text style={styles.deviceModel}>型号: {device.model}</Text>
                 <View style={styles.deviceMetrics}>
                   <View style={styles.metricItem}>
-                    <Text style={styles.metricLabel}>当前算力</Text>
+                    <Text style={styles.metricLabel}>内存占用</Text>
                     <Text style={styles.metricValue}>
                       {device.currentCompute}
                     </Text>
@@ -94,7 +94,7 @@ export const DeviceHistoryTab: React.FC<DeviceHistoryTabProps> = ({
                     </Text>
                   </View>
                   <View style={styles.metricItem}>
-                    <Text style={styles.metricLabel}>累计收益</Text>
+                    <Text style={styles.metricLabel}>健康状态</Text>
                     <Text style={[styles.metricValue, styles.revenueValue]}>
                       {device.cumulativeRevenue}
                     </Text>

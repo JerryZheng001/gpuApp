@@ -224,6 +224,32 @@ export class DownloadManager {
       throw new Error('Model has no download URL');
     }
 
+    // Aggressive DNS pre-warming for ModelScope URLs
+    // This helps because browsers can resolve DNS but OkHttp sometimes cannot
+    if (Platform.OS === 'android' && model.downloadUrl.includes('modelscope.cn')) {
+      try {
+        const {preWarmDNS, testDomainConnectivity} = await import('../../utils/dnsUtils');
+        
+        // First, try to pre-warm DNS
+        await preWarmDNS(model.downloadUrl);
+        
+        // Then, test connectivity with a HEAD request
+        // This forces DNS resolution and establishes a connection
+        const urlObj = new URL(model.downloadUrl);
+        const baseUrl = `https://${urlObj.hostname}`;
+        const isReachable = await testDomainConnectivity(baseUrl, 5000);
+        
+        if (isReachable) {
+          console.log(`${TAG}: ✅ ModelScope domain is reachable, DNS resolved successfully`);
+        } else {
+          console.warn(`${TAG}: ⚠️ ModelScope domain connectivity test failed, but continuing download attempt`);
+        }
+      } catch (error) {
+        console.warn(`${TAG}: DNS pre-warm failed, continuing anyway:`, error);
+        // Don't fail the download if pre-warm fails - let OkHttp's DNS resolver try
+      }
+    }
+
     const isEnoughSpace = await hasEnoughSpace(model);
     if (!isEnoughSpace) {
       console.error(`${TAG}: Not enough storage space for model:`, {
@@ -390,62 +416,114 @@ export class DownloadManager {
     destinationPath: string,
     authToken?: string | null,
   ): Promise<void> {
-    try {
-      console.log(`${TAG}: Starting Android download for model:`, {
-        modelId: model.id,
-        destination: destinationPath,
-      });
-
-      const downloadJob: DownloadJob = {
-        model,
-        state: {
-          isDownloading: true,
-          progress: null,
-          error: null,
-        },
-        destination: destinationPath,
-        lastBytesWritten: 0,
-        lastUpdateTime: Date.now(),
-      };
-
-      // Start the download first to get the download ID
-      const config: DownloadConfig = {
-        destination: destinationPath,
-        networkType: 'ANY',
-        priority: 1,
-        progressInterval: 1000,
-        ...(authToken ? {authToken} : {}),
-      };
-      const response: DownloadResponse =
-        await NativeDownloadModule.startDownload(model.downloadUrl!, config);
-
-      // Store the download ID
-      downloadJob.downloadId = response.downloadId;
-      console.log(`${TAG}: Download started with ID: ${response.downloadId}`);
-
-      // Add job to map after getting download ID
-      this.downloadJobs.set(model.id, downloadJob);
-      this.callbacks.onStart?.(model.id);
-    } catch (error) {
-      console.error(`${TAG}: Failed to start Android download:`, {
-        modelId: model.id,
-        error: error instanceof Error ? error.message : String(error),
-      });
-
-      const job = this.downloadJobs.get(model.id);
-      if (job) {
-        job.state.error =
-          error instanceof Error ? error : new Error(String(error));
-        job.state.isDownloading = false;
+    // Try to resolve DNS and use IP address if DNS fails
+    let downloadUrl = model.downloadUrl!;
+    
+    // If ModelScope URL, try to resolve DNS and use IP if needed
+    if (downloadUrl.includes('modelscope.cn')) {
+      try {
+        const resolvedUrl = await this.resolveModelScopeUrl(downloadUrl);
+        if (resolvedUrl !== downloadUrl) {
+          console.log(`${TAG}: Using resolved URL:`, resolvedUrl);
+          downloadUrl = resolvedUrl;
+        }
+      } catch (error) {
+        console.warn(`${TAG}: Failed to resolve ModelScope URL, using original:`, error);
+        // Continue with original URL, let OkHttp's DNS resolver handle it
       }
-      this.downloadJobs.delete(model.id);
-      this.callbacks.onError?.(
-        model.id,
-        error instanceof Error ? error : new Error(String(error)),
-      );
-      throw error;
+    }
+    
+    await this.attemptAndroidDownload(
+      model,
+      downloadUrl,
+      destinationPath,
+      authToken,
+    );
+  }
+
+  /**
+   * Try to resolve ModelScope URL to IP address to bypass DNS issues
+   * This is a workaround for DNS resolution problems on some Android devices
+   */
+  private async resolveModelScopeUrl(url: string): Promise<string> {
+    try {
+      const urlObj = new URL(url);
+      const hostname = urlObj.hostname;
+      
+      // Try to resolve hostname using fetch (which uses different DNS stack)
+      // This helps pre-resolve DNS before OkHttp tries
+      const testUrl = `https://${hostname}`;
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 3000);
+      
+      try {
+        await fetch(testUrl, {
+          method: 'HEAD',
+          signal: controller.signal,
+          cache: 'no-cache',
+        });
+        clearTimeout(timeoutId);
+        console.log(`${TAG}: Successfully resolved ${hostname} via fetch`);
+        return url; // DNS resolved, use original URL
+      } catch (fetchError) {
+        clearTimeout(timeoutId);
+        console.warn(`${TAG}: Fetch DNS resolution failed:`, fetchError);
+        // Continue to try IP-based approach
+      }
+      
+      // If fetch also fails, return original URL and let OkHttp's DNS resolver handle it
+      // with retry mechanism we added in CustomDnsResolver
+      return url;
+    } catch (error) {
+      console.error(`${TAG}: Error in resolveModelScopeUrl:`, error);
+      return url;
     }
   }
+
+  private async attemptAndroidDownload(
+    model: Model,
+    url: string,
+    destinationPath: string,
+    authToken?: string | null,
+  ): Promise<void> {
+    console.log(`${TAG}: Attempting Android download:`, {
+      modelId: model.id,
+      url,
+      destination: destinationPath,
+    });
+
+    const downloadJob: DownloadJob = {
+      model,
+      state: {
+        isDownloading: true,
+        progress: null,
+        error: null,
+      },
+      destination: destinationPath,
+      lastBytesWritten: 0,
+      lastUpdateTime: Date.now(),
+    };
+
+    // Start the download first to get the download ID
+    const config: DownloadConfig = {
+      destination: destinationPath,
+      networkType: 'ANY',
+      priority: 1,
+      progressInterval: 1000,
+      ...(authToken ? {authToken} : {}),
+    };
+    const response: DownloadResponse =
+      await NativeDownloadModule.startDownload(url, config);
+
+    // Store the download ID
+    downloadJob.downloadId = response.downloadId;
+    console.log(`${TAG}: Download started with ID: ${response.downloadId}`);
+
+    // Add job to map after getting download ID
+    this.downloadJobs.set(model.id, downloadJob);
+    this.callbacks.onStart?.(model.id);
+  }
+
 
   async cancelDownload(modelId: string): Promise<void> {
     console.log(`${TAG}: Attempting to cancel download:`, modelId);

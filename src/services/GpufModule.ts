@@ -1,4 +1,4 @@
-import {NativeModules} from 'react-native';
+import {NativeModules, NativeEventEmitter} from 'react-native';
 
 export interface GpufModuleInterface {
   init(): Promise<number>;
@@ -14,11 +14,15 @@ export interface GpufModuleInterface {
     workerType: string,
     clientId: string,
   ): Promise<number>;
+  registerEmitter(): Promise<number>;
   startRemoteWorkerTasks(): Promise<number>;
   getRemoteWorkerStatus(): Promise<string>;
   stopRemoteWorker(): Promise<number>;
 }
 
 const {GpufModule} = NativeModules;
+
+// 创建事件发射器用于监听 RemoteWorkerEvent
+export const gpufEventEmitter = new NativeEventEmitter(GpufModule);
 
 export default GpufModule as GpufModuleInterface;

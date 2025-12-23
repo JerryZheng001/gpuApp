@@ -22,6 +22,9 @@ export type {
 export {deviceService} from './device';
 export type {DeviceInfo, BindDeviceResponse} from './device';
 
+// Remote Worker Services (远程工作器事件管理)
+export {remoteWorkerService} from './RemoteWorkerService';
+
 // Types
 export type {AuthState, Profile} from './palshub/AuthService';
 export type {ErrorInfo} from './palshub/ErrorHandler';

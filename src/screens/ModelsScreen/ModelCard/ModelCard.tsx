@@ -47,7 +47,7 @@ import {
   formatNumber,
 } from '../../../utils';
 import GpufModule from '../../../services/GpufModule';
-import { mobileAuthService, deviceService } from '../../../services';
+import { mobileAuthService, deviceService, remoteWorkerService } from '../../../services';
 import * as RNFS from '@dr.pogodin/react-native-fs';
 
 import {
@@ -262,6 +262,37 @@ export const ModelCard: React.FC<ModelCardProps> = observer(
 
     // 分享加载状态
     const [isSharing, setIsSharing] = useState(false);
+
+    // 使用全局服务监听 RemoteWorkerEvent（避免多个组件重复监听）
+    useEffect(() => {
+      // 确保 emitter 已注册
+      remoteWorkerService.registerEmitter().catch(error => {
+        console.error('注册 emitter 失败:', error);
+      });
+
+      // 添加事件监听器
+      const removeListener = remoteWorkerService.addListener((message: string) => {
+        // 根据消息类型处理
+        if (message.includes('HEARTBEAT')) {
+          console.log('💓 心跳:', message);
+        } else if (message.includes('LOGIN_SUCCESS')) {
+          console.log('✅ 登录成功:', message);
+        } else if (message.includes('INFERENCE_START')) {
+          console.log('🚀 开始推理:', message);
+        } else if (message.includes('INFERENCE_SUCCESS')) {
+          console.log('✅ 推理完成:', message);
+        } else if (message.includes('COMMAND_RECEIVED')) {
+          console.log('📨 收到任务:', message);
+        } else {
+          console.log('📢 状态更新:', message);
+        }
+      });
+
+      // 清理函数：移除监听器
+      return () => {
+        removeListener();
+      };
+    }, []); // 空依赖数组，只在组件挂载时执行一次
 
     const handleShare = useCallback(async () => {
       console.log('=== handleShare 函数被调用 ===');
@@ -503,8 +534,18 @@ export const ModelCard: React.FC<ModelCardProps> = observer(
         }
         console.log('✅ Step 2 完成: 远程工作器已启动');
 
-        // Step 3: 启动任务
-        console.log('Step 3: 调用 startRemoteWorkerTasks...');
+        // Step 3: 确保 emitter 已注册（如果还没有注册）
+        console.log('Step 3: 确保 emitter 已注册...');
+        try {
+          await remoteWorkerService.registerEmitter();
+          console.log('✅ emitter 已注册');
+        } catch (error) {
+          console.warn('⚠️ 注册 emitter 失败，将使用无回调模式:', error);
+          // 继续执行，使用无回调模式
+        }
+
+        // Step 4: 启动任务
+        console.log('Step 4: 调用 startRemoteWorkerTasks...');
         let startTasksResult: number;
         try {
           startTasksResult = await Promise.race([
@@ -527,7 +568,7 @@ export const ModelCard: React.FC<ModelCardProps> = observer(
           setSnackbarVisible(true);
           return;
         }
-        console.log('✅ Step 3 完成: 任务已启动');
+        console.log('✅ Step 4 完成: 任务已启动');
 
         // 所有步骤成功，设置新的分享状态
         console.log('🎉 分享流程全部成功！');

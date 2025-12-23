@@ -8,6 +8,7 @@
     "android": "bash scripts/check-and-setup-port-forward.sh && react-native run-android",
     "build:android": "cd android && ./gradlew assembleDebug && cd ..",
     "build:android:release": "cd android && ./gradlew bundleRelease && cd ..",
+    "build:android:apk": "cd android && ./gradlew assembleRelease && cd ..",
     "ios": "react-native run-ios --simulator=\"iPhone 16 Pro\"",
     "ios:build": "cd ios && xcodebuild CC=clang CPLUSPLUS=clang++ LD=clang LDPLUSPLUS=clang++ -workspace PocketPal.xcworkspace -scheme PocketPal -configuration Debug -sdk iphonesimulator -arch $(uname -m) ONLY_ACTIVE_ARCH=YES GCC_OPTIMIZATION_LEVEL=0 GCC_PRECOMPILE_PREFIX_HEADER=YES ASSETCATALOG_COMPILER_OPTIMIZATION=time DEBUG_INFORMATION_FORMAT=dwarf COMPILER_INDEX_STORE_ENABLE=NO | xcpretty",
     "ios:build:release": "cd ios && xcodebuild CC=clang CPLUSPLUS=clang++ LD=clang LDPLUSPLUS=clang++ -workspace PocketPal.xcworkspace -scheme PocketPal -configuration Release -sdk iphoneos -arch arm64 -arch x86_64 GCC_OPTIMIZATION_LEVEL=s GCC_PRECOMPILE_PREFIX_HEADER=YES ASSETCATALOG_COMPILER_OPTIMIZATION=space DEBUG_INFORMATION_FORMAT=dwarf-with-dsym COMPILER_INDEX_STORE_ENABLE=YES | xcpretty",
@@ -22,6 +23,7 @@
     "start:reset": "react-native start --reset-cache",
     "setup:android": "bash scripts/setup-device-port-forward.sh",
     "android:device": "bash scripts/setup-device-port-forward.sh && react-native run-android",
+    "fix:metro": "bash scripts/fix-metro-connection.sh",
     "test": "jest"
   },
   "dependencies": {

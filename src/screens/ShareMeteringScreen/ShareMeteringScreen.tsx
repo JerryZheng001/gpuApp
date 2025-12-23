@@ -14,7 +14,6 @@ import {createStyles} from './styles';
 import {L10nContext} from '../../utils';
 import {
   ChevronDownIcon,
-  DownloadIcon,
 } from '../../assets/icons';
 
 // Mock data
@@ -52,16 +51,6 @@ export const ShareMeteringScreen: React.FC = observer(() => {
   const [timeMenuVisible, setTimeMenuVisible] = useState(false);
   const [selectedDevice, setSelectedDevice] = useState('全部设备');
   const [selectedTime, setSelectedTime] = useState('今日');
-
-  const handleExport = () => {
-    // TODO: Implement export functionality
-    console.log('Export data');
-  };
-
-  // Calculate summary
-  const totalShareDuration = '8:30';
-  const totalComputeOccupancy = '128 GB·小时';
-  const totalRevenue = '¥2.80';
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
@@ -233,40 +222,7 @@ export const ShareMeteringScreen: React.FC = observer(() => {
           </Card.Content>
         </Card>
 
-        {/* Summary Card */}
-        <Card style={styles.summaryCard}>
-          <Card.Content>
-            <Text style={styles.summaryTitle}>数据汇总 ({selectedTime})</Text>
-            <View style={styles.summaryContent}>
-              <View style={styles.summaryItem}>
-                <Text style={styles.summaryLabel}>总分享时长</Text>
-                <Text style={styles.summaryValue}>{totalShareDuration}</Text>
-              </View>
-              <View style={styles.summaryItem}>
-                <Text style={styles.summaryLabel}>总算力占用</Text>
-                <Text style={styles.summaryValue}>
-                  {totalComputeOccupancy}
-                </Text>
-              </View>
-              <View style={styles.summaryItem}>
-                <Text style={styles.summaryLabel}>总收益</Text>
-                <Text style={[styles.summaryValue, styles.revenueText]}>
-                  {totalRevenue}
-                </Text>
-              </View>
-            </View>
-            <TouchableOpacity
-              style={styles.exportButton}
-              onPress={handleExport}>
-              <DownloadIcon
-                width={16}
-                height={16}
-                stroke={theme.colors.primary}
-              />
-              <Text style={styles.exportButtonText}>导出数据</Text>
-            </TouchableOpacity>
-          </Card.Content>
-        </Card>
+        {/* Summary Card - 已删除 */}
       </ScrollView>
     </SafeAreaView>
   );

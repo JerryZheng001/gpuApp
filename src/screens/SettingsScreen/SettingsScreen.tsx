@@ -994,54 +994,54 @@ export const SettingsScreen: React.FC = observer(() => {
             </Card.Content>
           </Card>
 
-          {/* API Settings */}
-          <Card elevation={0} style={styles.card}>
-            <Card.Title title={l10n.settings.apiSettingsTitle} />
-            <Card.Content>
-              <View style={styles.settingItemContainer}>
-                {/* Hugging Face Token */}
-                <View style={styles.switchContainer}>
-                  <View style={styles.textContainer}>
-                    <Text variant="titleMedium" style={styles.textLabel}>
-                      {l10n.settings.huggingFaceTokenLabel}
-                    </Text>
-                    <Text variant="labelSmall" style={styles.textDescription}>
+          {/* API Settings - 已隐藏 */}
+          {false && (
+            <Card elevation={0} style={styles.card}>
+              <Card.Title title={l10n.settings.apiSettingsTitle} />
+              <Card.Content>
+                <View style={styles.settingItemContainer}>
+                  <View style={styles.switchContainer}>
+                    <View style={styles.textContainer}>
+                      <Text variant="titleMedium" style={styles.textLabel}>
+                        {l10n.settings.huggingFaceTokenLabel}
+                      </Text>
+                      <Text variant="labelSmall" style={styles.textDescription}>
+                        {hfStore.isTokenPresent
+                          ? l10n.settings.tokenIsSetDescription
+                          : l10n.settings.setTokenDescription}
+                      </Text>
+                    </View>
+                    <Button
+                      mode="outlined"
+                      onPress={() => setShowHfTokenDialog(true)}
+                      style={styles.menuButton}>
                       {hfStore.isTokenPresent
-                        ? l10n.settings.tokenIsSetDescription
-                        : l10n.settings.setTokenDescription}
-                    </Text>
+                        ? l10n.common.update
+                        : l10n.settings.setTokenButton}
+                    </Button>
                   </View>
-                  <Button
-                    mode="outlined"
-                    onPress={() => setShowHfTokenDialog(true)}
-                    style={styles.menuButton}>
-                    {hfStore.isTokenPresent
-                      ? l10n.common.update
-                      : l10n.settings.setTokenButton}
-                  </Button>
-                </View>
 
-                {/* Use HF Token Switch */}
-                <Divider style={styles.divider} />
-                <View style={styles.switchContainer}>
-                  <View style={styles.textContainer}>
-                    <Text variant="titleMedium" style={styles.textLabel}>
-                      {l10n.settings.useHfTokenLabel}
-                    </Text>
-                    <Text variant="labelSmall" style={styles.textDescription}>
-                      {l10n.settings.useHfTokenDescription}
-                    </Text>
+                  <Divider style={styles.divider} />
+                  <View style={styles.switchContainer}>
+                    <View style={styles.textContainer}>
+                      <Text variant="titleMedium" style={styles.textLabel}>
+                        {l10n.settings.useHfTokenLabel}
+                      </Text>
+                      <Text variant="labelSmall" style={styles.textDescription}>
+                        {l10n.settings.useHfTokenDescription}
+                      </Text>
+                    </View>
+                    <Switch
+                      testID="use-hf-token-switch"
+                      value={hfStore.useHfToken}
+                      disabled={!hfStore.isTokenPresent}
+                      onValueChange={value => hfStore.setUseHfToken(value)}
+                    />
                   </View>
-                  <Switch
-                    testID="use-hf-token-switch"
-                    value={hfStore.useHfToken}
-                    disabled={!hfStore.isTokenPresent}
-                    onValueChange={value => hfStore.setUseHfToken(value)}
-                  />
                 </View>
-              </View>
-            </Card.Content>
-          </Card>
+              </Card.Content>
+            </Card>
+          )}
 
           {/* Cache & Storage Settings - iOS only (for Shortcuts) */}
           {Platform.OS === 'ios' && (

@@ -24,7 +24,7 @@ const crossPlatformModels: Model[] = [
       'https://huggingface.co/bartowski/gemma-2-2b-it-GGUF/resolve/main/gemma-2-2b-it-Q6_K.gguf',
     hfUrl: 'https://huggingface.co/bartowski/gemma-2-2b-it-GGUF',
     progress: 0,
-    filename: 'gemma-2-2b-it-Q6_K.gguf',
+    filename: '2b-it-Q6_K.gguf',
     isLocal: false,
     origin: ModelOrigin.PRESET,
     defaultChatTemplate: {...chatTemplates.gemmaIt},
@@ -45,7 +45,7 @@ const crossPlatformModels: Model[] = [
     defaultStopWords: ['<end_of_turn>'],
     stopWords: ['<end_of_turn>'],
     hfModelFile: {
-      rfilename: 'gemma-2-2b-it-Q6_K.gguf',
+      rfilename: '2b-it-Q6_K.gguf',
       url: 'https://huggingface.co/bartowski/gemma-2-2b-it-GGUF/resolve/main/gemma-2-2b-it-Q6_K.gguf',
       size: 2151393120,
       oid: '72f2510b5868d1141617aa16cfc4c4a61ec77262',

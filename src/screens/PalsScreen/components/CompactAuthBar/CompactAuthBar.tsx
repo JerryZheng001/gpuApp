@@ -15,10 +15,11 @@ interface CompactAuthBarProps {
   onProfilePress: () => void;
   onDismiss: () => void;
   userName?: string;
+  customMessage?: string; // 自定义提示文案
 }
 
 export const CompactAuthBar: React.FC<CompactAuthBarProps> = observer(
-  ({isAuthenticated, onSignInPress, onDismiss}) => {
+  ({isAuthenticated, onSignInPress, onDismiss, customMessage}) => {
     const theme = useTheme();
     const styles = createStyles(theme);
     const l10n = useContext(L10nContext);
@@ -27,6 +28,9 @@ export const CompactAuthBar: React.FC<CompactAuthBarProps> = observer(
     if (isAuthenticated) {
       return null;
     }
+
+    // 使用自定义文案或默认文案
+    const message = customMessage || l10n.palsScreen.signInToAccessLibrary;
 
     return (
       <View style={styles.container} testID="compact-auth-bar">
@@ -38,7 +42,7 @@ export const CompactAuthBar: React.FC<CompactAuthBarProps> = observer(
               height={16}
             />
             <Text style={styles.infoText}>
-              {l10n.palsScreen.signInToAccessLibrary}
+              {message}
             </Text>
           </View>
           <View style={styles.actionsSection}>

@@ -130,6 +130,22 @@ class MobileAuthService {
           this.user = response.data;
           this.isAuthenticated = true;
           console.log('登录成功:', response.data);
+          
+          // 登录成功后，尝试恢复设备信息
+          // 使用动态导入避免循环依赖
+          import('../device').then(({deviceService}) => {
+            const userId = response.data?.id;
+            if (userId) {
+              const restored = deviceService.restoreDeviceByUserId(userId);
+              if (restored) {
+                console.log(`✅ 为 user_id ${userId} 恢复了设备信息`);
+              } else {
+                console.log(`ℹ️ user_id ${userId} 没有缓存的设备信息，需要绑定设备`);
+              }
+            }
+          }).catch(err => {
+            console.error('恢复设备信息失败:', err);
+          });
         } else {
           this.error = response.message;
         }
@@ -166,6 +182,15 @@ class MobileAuthService {
     }
 
     console.log('已退出登录');
+    
+    // 清除设备服务中的用户信息，但保留 client_id
+    // 这样下次登录时可以直接复用已有的 client_id
+    // 使用动态导入避免循环依赖
+    import('../device').then(({deviceService}) => {
+      deviceService.clearUserInfo();
+    }).catch(err => {
+      console.error('清除设备用户信息失败:', err);
+    });
   }
 
   /**

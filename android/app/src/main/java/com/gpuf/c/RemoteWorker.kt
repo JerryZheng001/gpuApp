@@ -37,6 +37,19 @@ object RemoteWorker {
   external fun startRemoteWorkerTasks(callbackFunctionPtr: Long): Int
 
   /**
+   * 注册 Java/Kotlin emitter（用于把 native 状态消息转发到 JS）
+   * @param emitter emitter 对象，需要实现 emit(String message) 方法
+   * @return 0: 成功, -1: 失败
+   */
+  external fun registerCallbackEmitter(emitter: Any): Int
+
+  /**
+   * 启动后台任务处理线程（使用已注册的 Java emitter）
+   * @return 0: 成功, -1: 失败
+   */
+  external fun startRemoteWorkerTasksWithJavaCallback(): Int
+
+  /**
    * 获取远程工作器当前状态
    * @return 状态字符串，失败返回 null
    */

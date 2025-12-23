@@ -461,10 +461,11 @@ export const ModelsScreen: React.FC = observer(() => {
         visible={hfSearchVisible}
         onDismiss={() => setHFSearchVisible(false)}
       />
-      <FABGroup
+      {/* FABGroup removed - 加号按钮功能已移除 */}
+      {/* <FABGroup
         onAddHFModel={() => setHFSearchVisible(true)}
         onAddLocalModel={handleAddLocalModel}
-      />
+      /> */}
       <ModelSettingsSheet
         isVisible={settingsVisible}
         onClose={handleCloseSettings}

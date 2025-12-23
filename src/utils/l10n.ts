@@ -991,6 +991,7 @@ export const l10n = {
       addPal: 'Add Pal',
       // Compact Auth Bar
       signInToAccessLibrary: 'Sign in to access your library from palshub.ai',
+      signInAndBindDevice: 'Sign in and bind device to access',
       // Profile Screen
       editProfile: 'Edit Profile',
       menuItems: {
@@ -2298,6 +2299,7 @@ export const l10n = {
       // Compact Auth Bar
       signInToAccessLibrary:
         'palshub.aiのライブラリにアクセスするにはサインインしてください',
+      signInAndBindDevice: 'サインインしてデバイスをバインドするとアクセスできます',
       // Profile Screen
       editProfile: '編集資料',
       menuItems: {
@@ -3539,6 +3541,7 @@ export const l10n = {
       addPal: '添加Pal',
       // Compact Auth Bar
       signInToAccessLibrary: '登录以访问您在palshub.ai的资料库',
+      signInAndBindDevice: '登录并绑定设备后可访问',
       // Profile Screen
       editProfile: '编辑资料',
       menuItems: {
