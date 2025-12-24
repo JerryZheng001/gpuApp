@@ -3,7 +3,7 @@ import {chatTemplates} from '../utils/chat';
 import {defaultCompletionParams} from '../utils/completionSettingsVersions';
 import {Platform} from 'react-native';
 
-export const MODEL_LIST_VERSION = 14;
+export const MODEL_LIST_VERSION = 22;
 
 const iosOnlyModels: Model[] = [];
 
@@ -21,10 +21,10 @@ const crossPlatformModels: Model[] = [
     params: 2614341888,
     isDownloaded: false,
     downloadUrl:
-      'https://huggingface.co/bartowski/gemma-2-2b-it-GGUF/resolve/main/gemma-2-2b-it-Q6_K.gguf',
-    hfUrl: 'https://huggingface.co/bartowski/gemma-2-2b-it-GGUF',
+      'https://modelscope.cn/models/newsletter/gemma-2-2b-it-Q6_K-GGUF/resolve/master/gemma-2-2b-it.Q6_K.gguf',
+    hfUrl: 'https://modelscope.cn/models/newsletter/gemma-2-2b-it-Q6_K-GGUF',
     progress: 0,
-    filename: '2b-it-Q6_K.gguf',
+    filename: 'gemma-2-2b-it.Q6_K.gguf',
     isLocal: false,
     origin: ModelOrigin.PRESET,
     defaultChatTemplate: {...chatTemplates.gemmaIt},
@@ -45,8 +45,8 @@ const crossPlatformModels: Model[] = [
     defaultStopWords: ['<end_of_turn>'],
     stopWords: ['<end_of_turn>'],
     hfModelFile: {
-      rfilename: '2b-it-Q6_K.gguf',
-      url: 'https://huggingface.co/bartowski/gemma-2-2b-it-GGUF/resolve/main/gemma-2-2b-it-Q6_K.gguf',
+      rfilename: 'gemma-2-2b-it.Q6_K.gguf',
+      url: 'https://modelscope.cn/models/newsletter/gemma-2-2b-it-Q6_K-GGUF/resolve/master/gemma-2-2b-it.Q6_K.gguf',
       size: 2151393120,
       oid: '72f2510b5868d1141617aa16cfc4c4a61ec77262',
       lfs: {
@@ -67,8 +67,8 @@ const crossPlatformModels: Model[] = [
     params: 2614341888,
     isDownloaded: false,
     downloadUrl:
-      'https://huggingface.co/TheDrummer/Gemmasutra-Mini-2B-v1-GGUF/resolve/main/Gemmasutra-Mini-2B-v1-Q6_K.gguf',
-    hfUrl: 'https://huggingface.co/TheDrummer/Gemmasutra-Mini-2B-v1-GGUF',
+      'https://modelscope.cn/models/bartowski/Gemmasutra-Mini-2B-v1-GGUF/resolve/master/Gemmasutra-Mini-2B-v1-Q6_K.gguf',
+    hfUrl: 'https://modelscope.cn/models/bartowski/Gemmasutra-Mini-2B-v1-GGUF',
     progress: 0,
     filename: 'Gemmasutra-Mini-2B-v1-Q6_K.gguf',
     isLocal: false,
@@ -91,7 +91,7 @@ const crossPlatformModels: Model[] = [
     stopWords: ['<end_of_turn>'],
     hfModelFile: {
       rfilename: 'Gemmasutra-Mini-2B-v1-Q6_K.gguf',
-      url: 'https://huggingface.co/TheDrummer/Gemmasutra-Mini-2B-v1-GGUF/resolve/main/Gemmasutra-Mini-2B-v1-Q6_K.gguf',
+      url: 'https://modelscope.cn/models/bartowski/Gemmasutra-Mini-2B-v1-GGUF/resolve/master/Gemmasutra-Mini-2B-v1-Q6_K.gguf',
       size: 2151393152,
       oid: '05521bb238e46ebd8fb5dacf044ba14f7c15f73e',
       lfs: {
@@ -113,10 +113,10 @@ const crossPlatformModels: Model[] = [
     params: 3821079648,
     isDownloaded: false,
     downloadUrl:
-      'https://huggingface.co/MaziyarPanahi/Phi-3.5-mini-instruct-GGUF/resolve/main/Phi-3.5-mini-instruct.Q4_K_M.gguf',
-    hfUrl: 'https://huggingface.co/MaziyarPanahi/Phi-3.5-mini-instruct-GGUF',
+      'https://modelscope.cn/models/LLM-Research/Phi-3.5-mini-instruct-GGUF/resolve/master/Phi-3.5-mini-instruct-Q4_K_M.gguf',
+    hfUrl: 'https://modelscope.cn/models/LLM-Research/Phi-3.5-mini-instruct-GGUF',
     progress: 0,
-    filename: 'Phi-3.5-mini-instruct.Q4_K_M.gguf',
+    filename: 'Phi-3.5-mini-instruct-Q4_K_M.gguf',
     isLocal: false,
     origin: ModelOrigin.PRESET,
     defaultChatTemplate: {...chatTemplates.phi3},
@@ -134,8 +134,8 @@ const crossPlatformModels: Model[] = [
     defaultStopWords: ['<|end|>'],
     stopWords: ['<|end|>'],
     hfModelFile: {
-      rfilename: 'Phi-3.5-mini-instruct.Q4_K_M.gguf',
-      url: 'https://huggingface.co/MaziyarPanahi/Phi-3.5-mini-instruct-GGUF/resolve/main/Phi-3.5-mini-instruct.Q4_K_M.gguf',
+      rfilename: 'Phi-3.5-mini-instruct-Q4_K_M.gguf',
+      url: 'https://modelscope.cn/models/LLM-Research/Phi-3.5-mini-instruct-GGUF/resolve/master/Phi-3.5-mini-instruct-Q4_K_M.gguf',
       size: 2393232608,
       oid: 'a2b0f35b7504ba395e886fadd5ebc61236b9f5ec',
       lfs: {
@@ -157,8 +157,8 @@ const crossPlatformModels: Model[] = [
     params: 1777088000,
     isDownloaded: false,
     downloadUrl:
-      'https://huggingface.co/Qwen/Qwen2.5-1.5B-Instruct-GGUF/resolve/main/qwen2.5-1.5b-instruct-q8_0.gguf',
-    hfUrl: 'https://huggingface.co/Qwen/Qwen2.5-1.5B-Instruct-GGUF',
+      'https://modelscope.cn/models/Qwen/Qwen2.5-1.5B-Instruct-GGUF/resolve/master/qwen2.5-1.5b-instruct-q8_0.gguf',
+    hfUrl: 'https://modelscope.cn/models/Qwen/Qwen2.5-1.5B-Instruct-GGUF',
     progress: 0,
     filename: 'qwen2.5-1.5b-instruct-q8_0.gguf',
     isLocal: false,
@@ -180,7 +180,7 @@ const crossPlatformModels: Model[] = [
     supportsThinking: false, // Qwen2.5 doesn't support thinking (Qwen3+ does)
     hfModelFile: {
       rfilename: 'qwen2.5-1.5b-instruct-q8_0.gguf',
-      url: 'https://huggingface.co/Qwen/Qwen2.5-1.5B-Instruct-GGUF/resolve/main/qwen2.5-1.5b-instruct-q8_0.gguf',
+      url: 'https://modelscope.cn/models/Qwen/Qwen2.5-1.5B-Instruct-GGUF/resolve/master/qwen2.5-1.5b-instruct-q8_0.gguf',
       size: 1894532128,
       oid: '1ec6832f8c80d58e2efa88832420ec7856e8e7c6',
       lfs: {
@@ -201,8 +201,8 @@ const crossPlatformModels: Model[] = [
     params: 3397103616,
     isDownloaded: false,
     downloadUrl:
-      'https://huggingface.co/Qwen/Qwen2.5-3B-Instruct-GGUF/resolve/main/qwen2.5-3b-instruct-q5_k_m.gguf',
-    hfUrl: 'https://huggingface.co/Qwen/Qwen2.5-3B-Instruct-GGUF',
+      'https://modelscope.cn/models/Qwen/Qwen2.5-3B-Instruct-GGUF/resolve/master/qwen2.5-3b-instruct-q5_k_m.gguf',
+    hfUrl: 'https://modelscope.cn/models/Qwen/Qwen2.5-3B-Instruct-GGUF',
     progress: 0,
     filename: 'qwen2.5-3b-instruct-q5_k_m.gguf',
     isLocal: false,
@@ -224,7 +224,7 @@ const crossPlatformModels: Model[] = [
     supportsThinking: false, // Qwen2.5 doesn't support thinking (Qwen3+ does)
     hfModelFile: {
       rfilename: 'qwen2.5-3b-instruct-q5_k_m.gguf',
-      url: 'https://huggingface.co/Qwen/Qwen2.5-3B-Instruct-GGUF/resolve/main/qwen2.5-3b-instruct-q5_k_m.gguf',
+      url: 'https://modelscope.cn/models/Qwen/Qwen2.5-3B-Instruct-GGUF/resolve/master/qwen2.5-3b-instruct-q5_k_m.gguf',
       size: 2438740384,
       oid: 'ffee048cd9cd76e7e4848d17fb96892023e8eca1',
       lfs: {
@@ -290,8 +290,8 @@ const crossPlatformModels: Model[] = [
     params: 3212749888,
     isDownloaded: false,
     downloadUrl:
-      'https://huggingface.co/bartowski/Llama-3.2-3B-Instruct-GGUF/resolve/main/Llama-3.2-3B-Instruct-Q6_K.gguf',
-    hfUrl: 'https://huggingface.co/bartowski/Llama-3.2-3B-Instruct-GGUF',
+      'https://modelscope.cn/models/second-state/Llama-3.2-3B-Instruct-GGUF/resolve/master/Llama-3.2-3B-Instruct-Q6_K.gguf',
+    hfUrl: 'https://modelscope.cn/models/second-state/Llama-3.2-3B-Instruct-GGUF',
     progress: 0,
     filename: 'Llama-3.2-3B-Instruct-Q6_K.gguf',
     isLocal: false,
@@ -312,7 +312,7 @@ const crossPlatformModels: Model[] = [
     stopWords: ['<|eot_id|>'],
     hfModelFile: {
       rfilename: 'Llama-3.2-3B-Instruct-Q6_K.gguf',
-      url: 'https://huggingface.co/bartowski/Llama-3.2-3B-Instruct-GGUF/resolve/main/Llama-3.2-3B-Instruct-Q6_K.gguf',
+      url: 'https://modelscope.cn/models/second-state/Llama-3.2-3B-Instruct-GGUF/resolve/master/Llama-3.2-3B-Instruct-Q6_K.gguf',
       size: 2643853856,
       oid: '47d12cf8883aaa6a6cd0b47975cc026980a3af9d',
       lfs: {
@@ -333,8 +333,8 @@ const crossPlatformModels: Model[] = [
     params: 1711376384,
     isDownloaded: false,
     downloadUrl:
-      'https://huggingface.co/bartowski/SmolLM2-1.7B-Instruct-GGUF/resolve/main/SmolLM2-1.7B-Instruct-Q8_0.gguf',
-    hfUrl: 'https://huggingface.co/bartowski/SmolLM2-1.7B-Instruct-GGUF',
+      'https://modelscope.cn/models/bartowski/SmolLM2-1.7B-Instruct-GGUF/resolve/master/SmolLM2-1.7B-Instruct-Q8_0.gguf',
+    hfUrl: 'https://modelscope.cn/models/bartowski/SmolLM2-1.7B-Instruct-GGUF',
     progress: 0,
     filename: 'SmolLM2-1.7B-Instruct-Q8_0.gguf',
     isLocal: false,
@@ -356,7 +356,7 @@ const crossPlatformModels: Model[] = [
     supportsThinking: false, // SmolLM2 doesn't support thinking (SmolLM3+ does)
     hfModelFile: {
       rfilename: 'SmolLM2-1.7B-Instruct-Q8_0.gguf',
-      url: 'https://huggingface.co/bartowski/SmolLM2-1.7B-Instruct-GGUF/resolve/main/SmolLM2-1.7B-Instruct-Q8_0.gguf',
+      url: 'https://modelscope.cn/models/bartowski/SmolLM2-1.7B-Instruct-GGUF/resolve/master/SmolLM2-1.7B-Instruct-Q8_0.gguf',
       size: 1820414944,
       oid: 'c06316819523138df0346459118248997dac5089',
       lfs: {
@@ -379,8 +379,8 @@ const crossPlatformModels: Model[] = [
     params: 409252800, // 500M parameters
     isDownloaded: false,
     downloadUrl:
-      'https://huggingface.co/ggml-org/SmolVLM-500M-Instruct-GGUF/resolve/main/SmolVLM-500M-Instruct-Q8_0.gguf',
-    hfUrl: 'https://huggingface.co/ggml-org/SmolVLM-500M-Instruct-GGUF',
+      'https://modelscope.cn/models/ggml-org/SmolVLM-500M-Instruct-GGUF/resolve/master/SmolVLM-500M-Instruct-Q8_0.gguf',
+    hfUrl: 'https://modelscope.cn/models/ggml-org/SmolVLM-500M-Instruct-GGUF',
     progress: 0,
     filename: 'SmolVLM-500M-Instruct-Q8_0.gguf',
     isLocal: false,
@@ -402,7 +402,7 @@ const crossPlatformModels: Model[] = [
     stopWords: ['<|endoftext|>', '<|im_end|>', '<end_of_utterance>'],
     hfModelFile: {
       rfilename: 'SmolVLM-500M-Instruct-Q8_0.gguf',
-      url: 'https://huggingface.co/ggml-org/SmolVLM-500M-Instruct-GGUF/resolve/main/SmolVLM-500M-Instruct-Q8_0.gguf',
+      url: 'https://modelscope.cn/models/ggml-org/SmolVLM-500M-Instruct-GGUF/resolve/master/SmolVLM-500M-Instruct-Q8_0.gguf',
       size: 436806912,
       canFitInStorage: true,
     },
