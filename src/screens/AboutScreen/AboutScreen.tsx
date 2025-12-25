@@ -6,6 +6,7 @@ import {
   Alert,
   Linking,
   Platform,
+  Image,
 } from 'react-native';
 
 import DeviceInfo from 'react-native-device-info';
@@ -102,79 +103,73 @@ export const AboutScreen: React.FC = () => {
     }
   };
 
+  // 菜单项
+  const menuItems = [
+    {
+      key: 'features',
+      label: '功能介绍',
+      onPress: () => {
+        Alert.alert('功能介绍', l10n.about.description);
+      },
+    },
+    {
+      key: 'update',
+      label: '版本更新',
+      onPress: () => {
+        Alert.alert('版本更新', `当前版本: v${appInfo.version} (${appInfo.build})`);
+      },
+    },
+  ];
+
   return (
     <SafeAreaView style={styles.safeArea} edges={['bottom']}>
       <ScrollView contentContainerStyle={styles.container}>
-        <View style={styles.card}>
-          <View style={styles.header}>
-            <View style={styles.headerContent}>
-              <Text variant="titleLarge" style={styles.title}>
-                GPUNexus
-              </Text>
-              <Text variant="bodyMedium" style={styles.description}>
-                {l10n.about.description}
-              </Text>
-              <View style={styles.versionContainer}>
-                <TouchableOpacity
-                  style={styles.versionButton}
-                  onPress={copyVersionToClipboard}>
-                  <Text style={styles.versionText}>
-                    v{appInfo.version} ({appInfo.build})
-                  </Text>
-                  <CopyIcon
-                    width={16}
-                    height={16}
-                    stroke={theme.colors.textSecondary}
-                  />
-                </TouchableOpacity>
-              </View>
-              <Text style={styles.llamaBuildText}>
-                llama.cpp {BuildInfo.number} ({BuildInfo.commit.substring(0, 7)}
-                )
-              </Text>
-            </View>
-          </View>
-
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>{l10n.about.supportProject}</Text>
-            <Text variant="bodyMedium" style={styles.description}>
-              {l10n.about.supportProjectDescription}
-            </Text>
-            <Button
-              mode="outlined"
-              onPress={() =>
-                Linking.openURL('https://github.com/a-ghorbani/pocketpal-ai')
-              }
-              style={styles.actionButton}
-              icon={GithubButtonIcon}>
-              {l10n.about.githubButton}
-            </Button>
-            {Platform.OS !== 'ios' && (
-              <>
-                <Text style={styles.orText}>{l10n.about.orText}</Text>
-                <TouchableOpacity
-                  style={styles.supportButton}
-                  onPress={() =>
-                    Linking.openURL('https://www.buymeacoffee.com/aghorbani')
-                  }>
-                  <HeartIcon stroke={theme.colors.onPrimary} />
-                  <Text style={styles.supportButtonText}>
-                    {l10n.about.sponsorButton}
-                  </Text>
-                </TouchableOpacity>
-              </>
-            )}
-            <Text style={styles.orText}>{l10n.about.orBy}</Text>
-            <Button
-              mode="outlined"
-              style={styles.actionButton}
-              contentStyle={styles.feedbackButtonContent}
-              icon={ChevronRightButtonIcon}
-              onPress={() => setShowFeedback(true)}>
-              {l10n.feedback.shareThoughtsButton}
-            </Button>
-          </View>
+        {/* Logo 和版本信息区域 */}
+        <View style={styles.logoSection}>
+          <Image
+            source={require('../../assets/pocketpal-dark1-v2.png')}
+            style={styles.logo}
+            resizeMode="contain"
+          />
+          <Text variant="headlineMedium" style={styles.appName}>
+            GPUNexus
+          </Text>
+          <Text variant="bodyMedium" style={styles.versionText}>
+            Version {appInfo.version}
+          </Text>
         </View>
+
+        {/* 菜单项 */}
+        <View style={styles.menuContainer}>
+          {menuItems.map((item, index) => (
+            <TouchableOpacity
+              key={item.key}
+              style={[
+                styles.menuItem,
+                index === menuItems.length - 1 && styles.menuItemLast,
+              ]}
+              onPress={item.onPress}>
+              <Text variant="bodyLarge" style={styles.menuLabel}>
+                {item.label}
+              </Text>
+              <ChevronRightIcon
+                width={20}
+                height={20}
+                stroke={theme.colors.onSurfaceVariant}
+              />
+            </TouchableOpacity>
+          ))}
+        </View>
+
+        {/* 版权信息 */}
+        {/* <View style={styles.copyrightSection}>
+          <Text style={styles.copyrightText}>
+            GPUNexus 版权所有
+          </Text>
+          <Text style={styles.copyrightText}>
+            Copyright © 2025 GPUNexus. All Rights Reserved.
+          </Text>
+        </View> */}
       </ScrollView>
 
       <Sheet

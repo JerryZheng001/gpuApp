@@ -13,6 +13,62 @@ export const createStyles = (theme: Theme, insets: EdgeInsets) =>
       padding: theme.spacing.default,
       paddingBottom: theme.spacing.default + insets.bottom,
     },
+    logoSection: {
+      alignItems: 'center',
+      justifyContent: 'center',
+      paddingVertical: theme.spacing.default * 4,
+      paddingHorizontal: theme.spacing.default * 2,
+    },
+    logo: {
+      width: 120,
+      height: 120,
+      marginBottom: theme.spacing.default * 2,
+    },
+    appName: {
+      ...theme.fonts.headlineMedium,
+      color: theme.colors.onSurface,
+      marginBottom: theme.spacing.default / 2,
+      fontWeight: '600',
+    },
+    versionText: {
+      ...theme.fonts.bodyMedium,
+      color: theme.colors.onSurfaceVariant,
+      marginTop: theme.spacing.default / 2,
+    },
+    menuContainer: {
+      backgroundColor: theme.colors.surface,
+      borderRadius: theme.borders.default,
+      overflow: 'hidden',
+      marginTop: theme.spacing.default * 2,
+    },
+    menuItem: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      paddingHorizontal: theme.spacing.default * 2,
+      paddingVertical: theme.spacing.default * 1.5,
+      borderBottomWidth: StyleSheet.hairlineWidth,
+      borderBottomColor: theme.colors.surfaceVariant,
+    },
+    menuItemLast: {
+      borderBottomWidth: 0,
+    },
+    menuLabel: {
+      ...theme.fonts.bodyLarge,
+      color: theme.colors.onSurface,
+    },
+    copyrightSection: {
+      alignItems: 'center',
+      paddingVertical: theme.spacing.default * 3,
+      paddingHorizontal: theme.spacing.default * 2,
+    },
+    copyrightText: {
+      ...theme.fonts.bodySmall,
+      color: theme.colors.onSurfaceVariant,
+      textAlign: 'center',
+      marginTop: theme.spacing.default / 2,
+      opacity: 0.6,
+    },
     card: {
       backgroundColor: theme.colors.surface,
       borderRadius: theme.borders.default,

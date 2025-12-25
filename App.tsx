@@ -36,7 +36,7 @@ import {
   SettingsScreen,
   BenchmarkScreen,
   AboutScreen,
-  HomeScreen,
+  // HomeScreen, // 已隐藏
   ProfileScreen,
   ShareMeteringScreen,
   RevenueBillScreen,
@@ -80,7 +80,7 @@ const App = observer(() => {
                 <DeepLinkHandler />
                 <BottomSheetModalProvider>
                   <Drawer.Navigator
-                    initialRouteName={ROUTES.HOME}
+                    initialRouteName={ROUTES.CHAT}
                     screenOptions={{
                       headerLeft: () => <HeaderLeft />,
                       drawerStyle: {
@@ -93,14 +93,15 @@ const App = observer(() => {
                       headerTitleStyle: styles.headerTitle,
                     }}
                     drawerContent={props => <SidebarContent {...props} />}>
-                    <Drawer.Screen
+                    {/* 首页路由已隐藏 */}
+                    {/* <Drawer.Screen
                       name={ROUTES.HOME}
                       component={gestureHandlerRootHOC(HomeScreen)}
                       options={{
                         headerStyle: styles.headerWithoutDivider,
                         title: currentL10n.screenTitles.home,
                       }}
-                    />
+                    /> */}
                     <Drawer.Screen
                       name={ROUTES.CHAT}
                       component={gestureHandlerRootHOC(ChatScreen)}

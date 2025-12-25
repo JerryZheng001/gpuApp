@@ -17,7 +17,6 @@ export const createStyles = (theme: Theme, insets: EdgeInsets) =>
     },
     filterContainer: {
       flexDirection: 'row',
-      gap: 12,
       marginBottom: 16,
     },
     filterButton: {
@@ -49,7 +48,6 @@ export const createStyles = (theme: Theme, insets: EdgeInsets) =>
       flexDirection: 'row',
       padding: 16,
       paddingBottom: 12,
-      gap: 8,
       alignItems: 'center',
     },
     tableHeaderText: {
@@ -65,7 +63,6 @@ export const createStyles = (theme: Theme, insets: EdgeInsets) =>
       flexDirection: 'row',
       padding: 16,
       paddingVertical: 12,
-      gap: 8,
       alignItems: 'center',
     },
     rowDivider: {
@@ -77,27 +74,21 @@ export const createStyles = (theme: Theme, insets: EdgeInsets) =>
       flexShrink: 1,
     },
     colDate: {
-      flex: 1,
-      minWidth: 70,
-      maxWidth: 90,
+      width: '22%',
+      paddingRight: 6,
     },
     colDevice: {
-      flex: 1.5,
-      minWidth: 90,
-    },
-    colDuration: {
-      flex: 0.9,
-      minWidth: 70,
-      maxWidth: 80,
+      flex: 1,
+      paddingHorizontal: 6,
+      minWidth: 0,
     },
     colCompute: {
-      flex: 1.3,
-      minWidth: 90,
+      width: '24%',
+      paddingHorizontal: 6,
     },
     colRevenue: {
-      flex: 0.8,
-      minWidth: 60,
-      maxWidth: 70,
+      width: '22%',
+      paddingLeft: 6,
       textAlign: 'right',
     },
     revenueText: {

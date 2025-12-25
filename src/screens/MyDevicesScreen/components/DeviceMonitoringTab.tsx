@@ -624,15 +624,18 @@ const createStyles = (theme: Theme) =>
     summaryGrid: {
       flexDirection: 'row',
       flexWrap: 'wrap',
-      gap: 16,
+      justifyContent: 'space-between',
+      marginHorizontal: -6,
     },
     summaryItem: {
       width: '48%',
-      gap: 8,
+      paddingHorizontal: 6,
+      marginBottom: 16,
     },
     summaryLabel: {
       fontSize: 12,
       color: theme.colors.onSurfaceVariant,
+      marginBottom: 4,
     },
     summaryValue: {
       fontSize: 20,

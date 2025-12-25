@@ -10,6 +10,7 @@ import {Text, Card, Button, SegmentedButtons} from 'react-native-paper';
 import {SafeAreaView, useSafeAreaInsets} from 'react-native-safe-area-context';
 import {useFocusEffect, useNavigation} from '@react-navigation/native';
 import {observer} from 'mobx-react';
+import DeviceInfo from 'react-native-device-info';
 
 import {useTheme} from '../../hooks';
 import {createStyles} from './styles';
@@ -120,28 +121,44 @@ export const MyDevicesScreen: React.FC = observer(() => {
       if (response.success && response.data && response.data.devices) {
         const devices = response.data.devices;
 
+        // 获取当前设备的型号（作为后备）
+        const currentDeviceModel = DeviceInfo.getModel();
+        const currentDeviceBrand = DeviceInfo.getBrand();
+        const currentDeviceFullModel = `${currentDeviceBrand} ${currentDeviceModel}`;
+
         // 映射所有设备数据，同时保存原始 API 数据
-        const mappedDevices: Device[] = devices.map(deviceData => ({
-          id: deviceData.client_id,
-          name: deviceData.client_name || '未知设备',
-          model: deviceData.os_type || '未知型号',
-          status: deviceData.client_status === 'online' 
-            ? 'running' 
-            : deviceData.client_status === 'offline'
-            ? 'offline'
-            : 'paused',
-          currentCompute: `${deviceData.memory_usage}%`,
-          cumulativeDuration: `${deviceData.uptime_days} 天`,
-          cumulativeRevenue: `健康度: ${deviceData.health}%`,
-          // 保存原始 API 数据用于监控页面
-          apiData: {
-            cpu_usage: deviceData.cpu_usage,
-            memory_usage: deviceData.memory_usage,
-            storage_usage: deviceData.storage_usage,
-            health: deviceData.health,
-            client_status: deviceData.client_status,
-          },
-        }));
+        const mappedDevices: Device[] = devices.map(deviceData => {
+          // 如果后端返回了设备型号，使用后端的；否则使用前端获取的当前设备型号
+          // 注意：如果后端没有返回设备型号字段，这里会使用 os_type 作为后备
+          let deviceModel = deviceData.model || deviceData.os_type || currentDeviceFullModel;
+          
+          // 如果 deviceModel 只是操作系统类型（android/ios），则使用前端获取的型号
+          if (deviceModel === 'android' || deviceModel === 'ios' || deviceModel === 'linux') {
+            deviceModel = currentDeviceFullModel;
+          }
+
+          return {
+            id: deviceData.client_id,
+            name: deviceData.client_name || '未知设备',
+            model: deviceModel,
+            status: deviceData.client_status === 'online' 
+              ? 'running' 
+              : deviceData.client_status === 'offline'
+              ? 'offline'
+              : 'paused',
+            currentCompute: `${deviceData.memory_usage}%`,
+            cumulativeDuration: `${deviceData.uptime_days} 天`,
+            cumulativeRevenue: `健康度: ${deviceData.health}%`,
+            // 保存原始 API 数据用于监控页面
+            apiData: {
+              cpu_usage: deviceData.cpu_usage,
+              memory_usage: deviceData.memory_usage,
+              storage_usage: deviceData.storage_usage,
+              health: deviceData.health,
+              client_status: deviceData.client_status,
+            },
+          };
+        });
 
         // 保存所有设备
         setAllDevices(mappedDevices);

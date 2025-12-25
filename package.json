@@ -1,6 +1,6 @@
 {
   "name": "GPUNexus",
-  "version": "1.11.11",
+  "version": "1.0.0",
   "private": true,
   "scripts": {
     "prepare": "husky",
@@ -25,6 +25,7 @@
     "android:device": "bash scripts/setup-device-port-forward.sh && react-native run-android",
     "fix:metro": "bash scripts/fix-metro-connection.sh",
     "test": "jest"
+    
   },
   "dependencies": {
     "@dr.pogodin/react-native-fs": "^2.36.0",

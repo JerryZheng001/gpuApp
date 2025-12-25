@@ -9,6 +9,7 @@ import {modelStore} from '../../store';
 import {useNavigation} from '@react-navigation/native';
 import {NavigationProp} from '@react-navigation/native';
 import {L10nContext} from '../../utils';
+import {ROUTES} from '../../utils/navigationConstants';
 
 interface ChatEmptyPlaceholderProps {
   onSelectModel: () => void;
@@ -63,16 +64,26 @@ export const ChatEmptyPlaceholder = observer(
           <Text style={styles.title}>{title}</Text>
           <Text style={styles.description}>{description}</Text>
         </View>
-        <Button
-          mode="contained"
-          onPress={onPress}
-          style={styles.button}
-          loading={modelStore.isContextLoading}
-          disabled={hasActiveModel}>
-          {modelStore.isContextLoading
-            ? l10n.components?.chatEmptyPlaceholder?.loading
-            : buttonText}
-        </Button>
+        <View style={styles.buttonContainer}>
+          <Button
+            mode="contained"
+            onPress={onPress}
+            style={styles.button}
+            loading={modelStore.isContextLoading}
+            disabled={hasActiveModel}>
+            {modelStore.isContextLoading
+              ? l10n.components?.chatEmptyPlaceholder?.loading
+              : buttonText}
+          </Button>
+          <Button
+            mode="contained"
+            onPress={() => navigation.navigate(ROUTES.MODELS)}
+            style={styles.shareButton}
+            buttonColor={theme.colors.primaryContainer}
+            textColor={theme.colors.onPrimaryContainer}>
+            模型分享
+          </Button>
+        </View>
       </View>
     );
   },

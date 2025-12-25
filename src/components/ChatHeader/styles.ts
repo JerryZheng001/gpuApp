@@ -25,6 +25,8 @@ export const createStyles = ({
       alignItems: 'center',
       gap: 10,
       flexShrink: 1,
+      flex: 1,
+      minWidth: 0,
     },
     menuIcon: {
       height: 40,

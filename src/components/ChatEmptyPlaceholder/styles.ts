@@ -21,7 +21,16 @@ export const createStyles = ({theme}: {theme: Theme}) =>
       textAlign: 'center',
       ...theme.fonts.bodyMedium,
     },
+    buttonContainer: {
+      flexDirection: 'column',
+      gap: 12,
+      width: '100%',
+      alignItems: 'center',
+    },
     button: {
+      minWidth: 200,
+    },
+    shareButton: {
       minWidth: 200,
     },
     logo: {

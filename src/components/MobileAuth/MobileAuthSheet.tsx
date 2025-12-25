@@ -180,7 +180,7 @@ export const MobileAuthSheet: React.FC<MobileAuthSheetProps> = observer(
             </View>
 
             {/* 邀请码（可选） */}
-            {showAffCode ? (
+            {/* {showAffCode ? (
               <TextInput
                 testID="aff-code-input"
                 label="邀请码（可选）"
@@ -201,7 +201,7 @@ export const MobileAuthSheet: React.FC<MobileAuthSheetProps> = observer(
                 labelStyle={styles.toggleLink}>
                 我有邀请码
               </Button>
-            )}
+            )} */}
 
             {/* 登录按钮 */}
             <Button

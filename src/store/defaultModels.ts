@@ -3,7 +3,7 @@ import {chatTemplates} from '../utils/chat';
 import {defaultCompletionParams} from '../utils/completionSettingsVersions';
 import {Platform} from 'react-native';
 
-export const MODEL_LIST_VERSION = 22;
+export const MODEL_LIST_VERSION = 23;
 
 const iosOnlyModels: Model[] = [];
 
@@ -424,10 +424,10 @@ const crossPlatformModels: Model[] = [
     params: 409252800,
     isDownloaded: false,
     downloadUrl:
-      'https://huggingface.co/ggml-org/SmolVLM-500M-Instruct-GGUF/resolve/main/mmproj-SmolVLM-500M-Instruct-Q8_0.gguf',
-    hfUrl: 'https://huggingface.co/ggml-org/SmolVLM-500M-Instruct-GGUF',
+      'https://modelscope.cn/models/ggml-org/SmolVLM2-500M-Video-Instruct-GGUF/resolve/master/mmproj-SmolVLM2-500M-Video-Instruct-Q8_0.gguf',
+    hfUrl: 'https://modelscope.cn/models/ggml-org/SmolVLM2-500M-Video-Instruct-GGUF',
     progress: 0,
-    filename: 'mmproj-SmolVLM-500M-Instruct-Q8_0.gguf',
+    filename: 'mmproj-SmolVLM2-500M-Video-Instruct-Q8_0.gguf',
     isLocal: false,
     origin: ModelOrigin.PRESET,
     modelType: ModelType.PROJECTION,
@@ -446,8 +446,8 @@ const crossPlatformModels: Model[] = [
     defaultStopWords: ['<|endoftext|>', '<|im_end|>', '<end_of_utterance>'],
     stopWords: ['<|endoftext|>', '<|im_end|>', '<end_of_utterance>'],
     hfModelFile: {
-      rfilename: 'mmproj-SmolVLM-500M-Instruct-Q8_0.gguf',
-      url: 'https://huggingface.co/ggml-org/SmolVLM-500M-Instruct-GGUF/resolve/main/mmproj-SmolVLM-500M-Instruct-Q8_0.gguf',
+      rfilename: 'mmproj-SmolVLM2-500M-Video-Instruct-Q8_0.gguf',
+      url: 'https://modelscope.cn/models/ggml-org/SmolVLM2-500M-Video-Instruct-GGUF/resolve/master/mmproj-SmolVLM2-500M-Video-Instruct-Q8_0.gguf',
       size: 108783360,
       canFitInStorage: true,
     },

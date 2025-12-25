@@ -87,12 +87,13 @@ export const SidebarContent: React.FC<DrawerContentComponentProps> = observer(
         <View style={styles.contentWrapper}>
           <DrawerContentScrollView {...props}>
             <Drawer.Section showDivider={false}>
-              <Drawer.Item
+              {/* 首页菜单项已隐藏 */}
+              {/* <Drawer.Item
                 label={l10n.components.sidebarContent.menuItems.home || '首页'}
                 icon={() => <AppInfoIcon stroke={theme.colors.primary} />}
                 onPress={() => props.navigation.navigate(ROUTES.HOME)}
                 style={styles.menuDrawerItem}
-              />
+              /> */}
               <Drawer.Item
                 label={l10n.components.sidebarContent.menuItems.chat}
                 icon={() => <ChatIcon stroke={theme.colors.primary} />}

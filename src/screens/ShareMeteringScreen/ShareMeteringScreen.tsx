@@ -286,12 +286,6 @@ export const ShareMeteringScreen: React.FC = observer(() => {
                     {row.device_name}
                   </Text>
                   <Text
-                    style={[styles.tableCell, styles.colDuration]}
-                    numberOfLines={1}
-                    ellipsizeMode="tail">
-                    {row.share_duration}
-                  </Text>
-                  <Text
                     style={[styles.tableCell, styles.colCompute]}
                     numberOfLines={1}
                     ellipsizeMode="tail">

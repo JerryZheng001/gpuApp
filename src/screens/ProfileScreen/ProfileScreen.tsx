@@ -1,4 +1,4 @@
-import React, {useContext} from 'react';
+import React, {useContext, useState} from 'react';
 import {
   View,
   ScrollView,
@@ -22,6 +22,7 @@ import {
   ChevronRightIcon,
 } from '../../assets/icons';
 import {mobileAuthService} from '../../services';
+import {MobileAuthSheet} from '../../components/MobileAuth';
 
 type ProfileScreenNavigationProp = DrawerNavigationProp<RootDrawerParamList>;
 
@@ -40,6 +41,9 @@ export const ProfileScreen: React.FC = observer(() => {
   const l10n = useContext(L10nContext);
   const navigation = useNavigation<ProfileScreenNavigationProp>();
 
+  // 登录弹窗状态
+  const [showAuthSheet, setShowAuthSheet] = useState(false);
+
   // 获取用户登录状态和信息
   const isAuthenticated = mobileAuthService.isAuthenticated;
   const user = mobileAuthService.user;
@@ -47,7 +51,7 @@ export const ProfileScreen: React.FC = observer(() => {
   // 用户数据
   const userData = {
     username: isAuthenticated
-      ? user?.display_name || user?.username || '用户'
+      ? `用户${user?.id || ''}`
       : '未登录',
     phone: isAuthenticated
       ? maskPhoneNumber(user?.phone_number || '')
@@ -102,11 +106,11 @@ export const ProfileScreen: React.FC = observer(() => {
       icon: 'ℹ️',
       label: l10n.screenTitles?.appInfo || '应用信息',
     },
-    {
-      key: 'about',
-      icon: '❓',
-      label: profile?.menuItems?.aboutUs || '关于我们',
-    },
+    // {
+    //   key: 'about',
+    //   icon: '❓',
+    //   label: profile?.menuItems?.aboutUs || '关于我们',
+    // },
   ];
 
   return (
@@ -135,9 +139,17 @@ export const ProfileScreen: React.FC = observer(() => {
               <Text variant="titleMedium" style={styles.username}>
                 {userData.username}
               </Text>
-              <Text variant="bodyMedium" style={styles.phone}>
-                {userData.phone}
-              </Text>
+              {isAuthenticated ? (
+                <Text variant="bodyMedium" style={styles.phone}>
+                  {userData.phone}
+                </Text>
+              ) : (
+                <TouchableOpacity onPress={() => setShowAuthSheet(true)}>
+                  <Text variant="bodyMedium" style={styles.phone}>
+                    {userData.phone}
+                  </Text>
+                </TouchableOpacity>
+              )}
             </View>
             <TouchableOpacity
               onPress={handleEditProfile}
@@ -174,6 +186,12 @@ export const ProfileScreen: React.FC = observer(() => {
           ))}
         </View>
       </ScrollView>
+
+      {/* 登录弹窗 */}
+      <MobileAuthSheet
+        isVisible={showAuthSheet}
+        onClose={() => setShowAuthSheet(false)}
+      />
     </SafeAreaView>
   );
 });

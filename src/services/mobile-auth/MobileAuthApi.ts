@@ -84,7 +84,7 @@ export async function sendVerifyCode(
     console.log('=== 发送验证码响应 ===');
     console.log('Status:', response.status);
     console.log('Status Text:', response.statusText);
-    
+
     const data = await response.json();
     console.log('Response Data:', data);
     return data;
