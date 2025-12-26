@@ -8,7 +8,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { v4 as uuidv4 } from 'uuid';
 import { Platform } from 'react-native';
 
-const API_BASE_URL = 'http://8.140.251.142:18081';
+const API_BASE_URL = "http://agent.gpunexus.com";
 
 // 设备信息
 export interface DeviceInfo {
@@ -388,11 +388,6 @@ class DeviceService {
             const params = new URLSearchParams({
                 user_id: targetUserId,
             });
-
-            // 如果提供了 client_id，添加到参数中
-            if (clientId) {
-                params.append('client_id', clientId);
-            }
 
             const url = `${API_BASE_URL}/api/user/client_list?${params.toString()}`;
             

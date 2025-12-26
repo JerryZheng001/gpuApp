@@ -10,6 +10,7 @@ import {Text, Card, Button, Menu, Divider} from 'react-native-paper';
 import {SafeAreaView, useSafeAreaInsets} from 'react-native-safe-area-context';
 import {observer} from 'mobx-react';
 import {useFocusEffect} from '@react-navigation/native';
+import dayjs from 'dayjs';
 
 import {useTheme} from '../../hooks';
 import {createStyles} from './styles';
@@ -20,6 +21,50 @@ import {
 import {mobileAuthService} from '../../services/mobile-auth';
 import {deviceService} from '../../services/device';
 import {getQuotaRecords, QuotaRecord} from '../../services/mobile-auth/MobileAuthApi';
+
+// 格式化日期字符串为 YYYY-MM-DD HH:mm:ss 格式
+const formatDate = (dateString: string): string => {
+  if (!dateString) return '';
+  try {
+    return dayjs(dateString).format('YYYY-MM-DD HH:mm:ss');
+  } catch (error) {
+    console.error('日期格式化错误:', error);
+    return dateString;
+  }
+};
+
+// 格式化数字显示
+const formatNumber = (num: string | number): string => {
+  const number = typeof num === 'string' ? parseFloat(num) : num;
+  if (isNaN(number)) return '0';
+  
+  if (number >= 1000000) {
+    return (number / 1000000).toFixed(1) + 'M';
+  } else if (number >= 1000) {
+    return (number / 1000).toFixed(1) + 'K';
+  }
+  return number.toString();
+};
+
+// 等待认证状态恢复的辅助函数
+const waitForAuthState = async (maxWait = 500): Promise<boolean> => {
+  // 如果已经认证，直接返回 true
+  if (mobileAuthService.isAuthenticated && mobileAuthService.user) {
+    return true;
+  }
+
+  // 等待持久化数据恢复（最多等待 maxWait 毫秒）
+  const startTime = Date.now();
+  while (Date.now() - startTime < maxWait) {
+    await new Promise(resolve => setTimeout(resolve, 50)); // 每 50ms 检查一次
+    if (mobileAuthService.isAuthenticated && mobileAuthService.user) {
+      console.log('✅ 认证状态已恢复');
+      return true;
+    }
+  }
+
+  return false;
+};
 
 export const ShareMeteringScreen: React.FC = observer(() => {
   const theme = useTheme();
@@ -36,12 +81,23 @@ export const ShareMeteringScreen: React.FC = observer(() => {
   const [error, setError] = useState<string | null>(null);
   const [page, setPage] = useState(1);
   const [pageSize] = useState(10);
+  const [pressedRowIndex, setPressedRowIndex] = useState<number | null>(null);
 
   // 获取设备列表
   const fetchDeviceList = useCallback(async () => {
-    // 检查是否已登录
+    // 如果未认证，等待一下看看是否是持久化数据还没恢复
     if (!mobileAuthService.isAuthenticated || !mobileAuthService.user) {
-      console.log('❌ 未登录，无法获取设备列表');
+      console.log('⏳ 设备列表：等待认证状态恢复...');
+      const authRestored = await waitForAuthState(500);
+      if (!authRestored || !mobileAuthService.user) {
+        console.log('❌ 未登录，无法获取设备列表');
+        return;
+      }
+    }
+
+    // 再次确认 user 存在
+    if (!mobileAuthService.user) {
+      console.log('❌ 用户信息不存在，无法获取设备列表');
       return;
     }
 
@@ -78,9 +134,23 @@ export const ShareMeteringScreen: React.FC = observer(() => {
     console.log('session:', mobileAuthService.session);
     console.log('user.id:', mobileAuthService.user?.id);
 
-    // 检查是否已登录
+    // 如果未认证，等待一下看看是否是持久化数据还没恢复
     if (!mobileAuthService.isAuthenticated || !mobileAuthService.user) {
-      console.log('❌ 未登录或用户信息不存在');
+      console.log('⏳ 等待认证状态恢复...');
+      const authRestored = await waitForAuthState(500);
+      
+      if (!authRestored || !mobileAuthService.user) {
+        console.log('❌ 未登录或用户信息不存在');
+        setError('请先登录');
+        setLoading(false);
+        return;
+      }
+    }
+
+    // 再次确认 user 存在（TypeScript 类型保护）
+    const currentUser = mobileAuthService.user;
+    if (!currentUser) {
+      console.log('❌ 用户信息不存在');
       setError('请先登录');
       setLoading(false);
       return;
@@ -103,13 +173,13 @@ export const ShareMeteringScreen: React.FC = observer(() => {
       
       const response = await getQuotaRecords(
         session,
-        mobileAuthService.user.id,
+        currentUser.id,
         page,
         pageSize,
         clientId, // 传入可选的 clientID
       );
 
-      console.log('配额记录响应:', response, mobileAuthService.user.id);
+      console.log('配额记录响应:', response, currentUser.id);
 
       // 检查响应是否成功（code 200 或 success true）
       const isSuccess = response.code === 200 || response.success === true;
@@ -159,7 +229,7 @@ export const ShareMeteringScreen: React.FC = observer(() => {
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}>
         {/* Filter Buttons */}
-        <View style={styles.filterContainer}>
+        {/* <View style={styles.filterContainer}>
           <Menu
             visible={deviceMenuVisible}
             onDismiss={() => setDeviceMenuVisible(false)}
@@ -203,42 +273,11 @@ export const ShareMeteringScreen: React.FC = observer(() => {
               />
             ))}
             </Menu>
-        </View>
+        </View> */}
 
         {/* Data Table */}
         <Card style={styles.tableCard}>
           <Card.Content style={styles.tableContent}>
-            {/* Table Header */}
-            <View style={styles.tableHeader}>
-              <Text
-                style={[styles.tableHeaderText, styles.colDate]}
-                numberOfLines={1}
-                ellipsizeMode="tail">
-                日期
-              </Text>
-              <Text
-                style={[styles.tableHeaderText, styles.colDevice]}
-                numberOfLines={1}
-                ellipsizeMode="tail">
-                设备名称
-              </Text>
-
-              <Text
-                style={[styles.tableHeaderText, styles.colCompute]}
-                numberOfLines={1}
-                ellipsizeMode="tail">
-                输入用量
-              </Text>
-              <Text
-                style={[styles.tableHeaderText, styles.colRevenue]}
-                numberOfLines={1}
-                ellipsizeMode="tail">
-                输出用量
-              </Text>
-            </View>
-
-            <Divider style={styles.tableDivider} />
-
             {/* Loading State */}
             {loading && (
               <View style={{padding: 20, alignItems: 'center'}}>
@@ -261,52 +300,78 @@ export const ShareMeteringScreen: React.FC = observer(() => {
               </View>
             )}
 
-            {/* Table Rows - Empty State */}
-            {!loading && !error && quotaRecords.length === 0 && (
-              <View style={{padding: 40, alignItems: 'center', justifyContent: 'center'}}>
-                <Text style={{color: theme.colors.onSurfaceVariant, fontSize: 16}}>
-                  暂时没有数据～
-                </Text>
-              </View>
-            )}
+            {/* Table with horizontal scroll */}
+            {!loading && !error && (
+              <ScrollView horizontal showsHorizontalScrollIndicator={true}>
+                <View style={styles.tableWrapper}>
+                  {/* Table Header */}
+                  <View style={styles.tableHeader}>
+                    <Text style={[styles.tableHeaderText, styles.colDate]}>
+                      日期
+                    </Text>
+                    <Text style={[styles.tableHeaderText, styles.colDevice]}>
+                      设备名称
+                    </Text>
+                    <Text style={[styles.tableHeaderText, styles.colCompute]}>
+                      输入用量
+                    </Text>
+                    <Text style={[styles.tableHeaderText, styles.colRevenue]}>
+                      输出用量
+                    </Text>
+                  </View>
 
-            {!loading && !error && quotaRecords.map((row, index) => (
-              <View key={index}>
-                <View style={styles.tableRow}>
-                  <Text
-                    style={[styles.tableCell, styles.colDate]}
-                    numberOfLines={1}
-                    ellipsizeMode="tail">
-                    {row.date}
-                  </Text>
-                  <Text
-                    style={[styles.tableCell, styles.colDevice]}
-                    numberOfLines={1}
-                    ellipsizeMode="tail">
-                    {row.device_name}
-                  </Text>
-                  <Text
-                    style={[styles.tableCell, styles.colCompute]}
-                    numberOfLines={1}
-                    ellipsizeMode="tail">
-                    {row.input_usage}
-                  </Text>
-                  <Text
-                    style={[
-                      styles.tableCell,
-                      styles.colRevenue,
-                      styles.revenueText,
-                    ]}
-                    numberOfLines={1}
-                    ellipsizeMode="tail">
-                    {row.output_usage}
-                  </Text>
+                  <Divider style={styles.tableDivider} />
+
+                  {/* Table Rows - Empty State */}
+                  {quotaRecords.length === 0 && (
+                    <View style={{padding: 40, alignItems: 'center', justifyContent: 'center'}}>
+                      <Text style={{color: theme.colors.onSurfaceVariant, fontSize: 16}}>
+                        暂时没有数据～
+                      </Text>
+                    </View>
+                  )}
+
+                  {/* Table Rows */}
+                  {quotaRecords.map((row, index) => (
+                    <View key={index}>
+                      <TouchableOpacity 
+                        style={[
+                          styles.tableRow,
+                          pressedRowIndex === index && styles.tableRowPressed
+                        ]}
+                        activeOpacity={0.8}
+                        onPressIn={() => setPressedRowIndex(index)}
+                        onPressOut={() => setPressedRowIndex(null)}
+                        onPress={() => {
+                          // 可以添加点击事件，比如显示详情
+                          console.log('点击了行:', row);
+                        }}>
+                        <Text style={[styles.tableCell, styles.colDate]}>
+                          {formatDate(row.created_at)}
+                        </Text>
+                        <Text style={[styles.tableCell, styles.colDevice]}>
+                          {row.client_name}
+                        </Text>
+                        <Text style={[styles.tableCell, styles.colCompute]}>
+                          {formatNumber(row.completion_tokens)}
+                        </Text>
+                        <Text
+                          style={[
+                            styles.tableCell,
+                            styles.colRevenue,
+                            styles.revenueText,
+                          ]}>
+                          {formatNumber(row.prompt_tokens)}
+                        </Text>
+                      </TouchableOpacity>
+                      {index < quotaRecords.length - 1 && (
+                        <Divider style={styles.rowDivider} />
+                      )}
+                    </View>
+                  ))}
                 </View>
-                {index < quotaRecords.length - 1 && (
-                  <Divider style={styles.rowDivider} />
-                )}
-              </View>
-            ))}
+              </ScrollView>
+            )}
           </Card.Content>
         </Card>
 

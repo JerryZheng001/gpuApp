@@ -3,7 +3,6 @@ import {View, TouchableOpacity, StyleSheet} from 'react-native';
 import {Text, Card, Divider} from 'react-native-paper';
 import {useTheme} from '../../../hooks';
 import {Theme} from '../../../utils/types';
-import {ChevronRightIcon} from '../../../assets/icons';
 
 interface Device {
   id: string;
@@ -101,11 +100,6 @@ export const DeviceHistoryTab: React.FC<DeviceHistoryTabProps> = ({
                   </View>
                 </View>
               </View>
-              <ChevronRightIcon
-                width={20}
-                height={20}
-                stroke={theme.colors.onSurfaceVariant}
-              />
             </TouchableOpacity>
             {index < devices.length - 1 && (
               <Divider style={styles.divider} />

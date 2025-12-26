@@ -7,11 +7,16 @@ const API_BASE_URL = 'https://test.chengfangtech.com';
 
 // 配额记录响应
 export interface QuotaRecord {
-  date: string;
-  device_name: string;
-  share_duration: string; // 格式可能是 "8:30" 或秒数
-  input_usage: string; // 输入用量，格式可能是 "128 GB·小时"
-  output_usage: string; // 输出用量，格式可能是 "156 GB·小时"
+  created_at: string; // ISO 8601 格式的日期时间字符串，如 "2025-12-25T15:03:44.227804+08:00"
+  client_name: string; // 设备名称
+  completion_tokens: number; // 输出用量（完成令牌数）
+  prompt_tokens: number; // 输入用量（提示令牌数）
+  // 兼容旧字段（可选）
+  date?: string;
+  device_name?: string;
+  share_duration?: string;
+  input_usage?: string;
+  output_usage?: string;
 }
 
 export interface QuotaRecordsResponse {
@@ -254,6 +259,56 @@ export async function getQuotaRecords(
 
     console.log('=== 获取配额记录响应 ===');
     console.log('Status:', response.status);
+    
+    // 检查是否是 401 未授权错误
+    if (response.status === 401) {
+      console.log('❌ 检测到 401 未授权错误，执行退出登录流程...');
+      
+      // 停止模型分享
+      try {
+        // 动态导入 GpufModule 和 modelStore 避免循环依赖
+        const GpufModule = (await import('../../services/GpufModule')).default;
+        const {modelStore} = await import('../../store');
+        console.log('正在停止模型分享...');
+        const stopResult = await Promise.race([
+          GpufModule.stopRemoteWorker(),
+          new Promise<number>((_, reject) => {
+            setTimeout(() => reject(new Error('停止分享超时')), 5000);
+          }),
+        ]);
+        console.log('停止分享结果:', stopResult);
+        // 清除分享状态
+        modelStore.clearSharedModel();
+        console.log('已清除分享状态');
+      } catch (error) {
+        console.error('停止模型分享失败:', error);
+        // 即使停止失败，也尝试清除分享状态
+        try {
+          const {modelStore} = await import('../../store');
+          modelStore.clearSharedModel();
+        } catch (clearError) {
+          console.error('清除分享状态失败:', clearError);
+        }
+      }
+      
+      // 退出登录
+      try {
+        // 动态导入 mobileAuthService 避免循环依赖
+        const {mobileAuthService} = await import('./MobileAuthService');
+        console.log('正在退出登录...');
+        mobileAuthService.signOut();
+        console.log('已退出登录');
+      } catch (error) {
+        console.error('退出登录失败:', error);
+      }
+      
+      // 返回错误响应
+      return {
+        code: 401,
+        success: false,
+        message: '登录已过期，请重新登录',
+      };
+    }
     
     const data = await response.json();
     console.log('Response Data:', data);

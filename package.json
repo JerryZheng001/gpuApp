@@ -130,7 +130,7 @@
   "packageManager": "yarn@1.22.22",
   "codegenConfig": {
     "name": "GPUNexusSpecs",
-    "type": "all",
+    "type": "modules",
     "jsSrcsDir": "src/specs",
     "android": {
       "javaPackageName": "com.gpunexus.specs"

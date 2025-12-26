@@ -66,8 +66,8 @@ import {
 import {
   AlertIcon,
   CopyIcon,
+  EditIcon,
   GridIcon,
-  PencilLineIcon,
   RefreshIcon,
 } from '../../assets/icons';
 
@@ -592,7 +592,7 @@ export const ChatView = observer(
             handleEdit(selectedMessage);
             handleMenuDismiss();
           },
-          icon: () => <PencilLineIcon stroke={theme.colors.primary} />,
+          icon: () => <EditIcon stroke={theme.colors.primary} />,
           disabled: !hasActiveModel,
         });
       }

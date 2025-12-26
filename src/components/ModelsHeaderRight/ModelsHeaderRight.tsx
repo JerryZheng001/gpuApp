@@ -4,9 +4,6 @@ import React, {useContext, useState} from 'react';
 import {observer} from 'mobx-react';
 import {IconButton} from 'react-native-paper';
 
-import iconHF from '../../assets/icon-hf.png';
-import iconHFLight from '../../assets/icon-hf-light.png';
-
 import {createStyles} from './styles';
 import {ModelsResetDialog} from '../ModelsResetDialog';
 
@@ -75,17 +72,6 @@ export const ModelsHeaderRight = observer(() => {
         anchorPosition="bottom">
         {/* Filter section */}
         <Menu.Item label="Filters" isGroupLabel />
-        <Menu.Item
-          icon={({size}) => (
-            <Image
-              source={filters.includes('hf') ? iconHF : iconHFLight}
-              style={{width: size, height: size}}
-            />
-          )}
-          onPress={() => toggleFilter('hf')}
-          label={l10n.components.modelsHeaderRight.menuTitleHf}
-          selected={filters.includes('hf')}
-        />
         <Menu.Item
           icon={filters.includes('downloaded') ? 'download-circle' : 'download'}
           onPress={() => toggleFilter('downloaded')}

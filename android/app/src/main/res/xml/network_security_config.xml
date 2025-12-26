@@ -37,7 +37,8 @@
     <!-- Note: Android's network security config has limited support for IP addresses -->
     <!-- The base-config above allows cleartext, but we explicitly allow this IP here -->
     <domain-config cleartextTrafficPermitted="true">
-        <domain includeSubdomains="false">8.140.251.142</domain>
+        <!-- <domain includeSubdomains="false">8.140.251.142</domain> -->
+        <domain includeSubdomains="false">agent.gpunexus.com</domain>
     </domain-config>
     
     <!-- Allow HTTPS traffic for mobile auth API -->

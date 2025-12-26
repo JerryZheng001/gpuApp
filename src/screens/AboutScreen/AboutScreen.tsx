@@ -7,6 +7,7 @@ import {
   Linking,
   Platform,
   Image,
+  ActivityIndicator,
 } from 'react-native';
 
 import DeviceInfo from 'react-native-device-info';
@@ -16,6 +17,7 @@ import {SafeAreaView, useSafeAreaInsets} from 'react-native-safe-area-context';
 import {BuildInfo} from 'llama.rn';
 
 import {submitFeedback} from '../../api/feedback';
+import {getApkVersionList, ApkVersionInfo} from '../../api/update';
 
 import {
   CopyIcon,
@@ -54,6 +56,7 @@ export const AboutScreen: React.FC = () => {
   const [generalFeedback, setGeneralFeedback] = useState('');
   const [usageFrequency, setUsageFrequency] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isCheckingUpdate, setIsCheckingUpdate] = useState(false);
 
   React.useEffect(() => {
     const version = DeviceInfo.getVersion();
@@ -103,6 +106,81 @@ export const AboutScreen: React.FC = () => {
     }
   };
 
+  // 检查版本更新
+  const handleCheckUpdate = async () => {
+    if (isCheckingUpdate) return;
+    
+    setIsCheckingUpdate(true);
+    try {
+      console.log('开始检查版本更新...');
+      const response = await getApkVersionList();
+      
+      if (response.success && response.data && response.data.length > 0) {
+        // 获取最新的活跃版本（is_active = true）
+        const activeVersions = response.data.filter(v => v.is_active);
+        if (activeVersions.length === 0) {
+          Alert.alert('版本更新', '暂无可用更新');
+          return;
+        }
+        
+        // 按 version_code 排序，获取最新的版本
+        const latestVersion = activeVersions.sort((a, b) => b.version_code - a.version_code)[0];
+        
+        const currentVersion = appInfo.version;
+        const latestVersionName = latestVersion.version_name;
+        
+        console.log('当前版本:', currentVersion);
+        console.log('最新版本:', latestVersionName);
+        
+        // 比较版本号
+        if (currentVersion !== latestVersionName) {
+          // 有更新，询问用户是否下载
+          Alert.alert(
+            '发现新版本',
+            `当前版本: v${currentVersion}\n最新版本: v${latestVersionName}\n\n是否立即下载更新？`,
+            [
+              {
+                text: '取消',
+                style: 'cancel',
+              },
+              {
+                text: '下载',
+                onPress: async () => {
+                  try {
+                    // 在 Android 上打开下载链接
+                    if (Platform.OS === 'android') {
+                      const canOpen = await Linking.canOpenURL(latestVersion.download_url);
+                      if (canOpen) {
+                        await Linking.openURL(latestVersion.download_url);
+                        Alert.alert('提示', '已开始下载，下载完成后请手动安装');
+                      } else {
+                        Alert.alert('错误', '无法打开下载链接');
+                      }
+                    } else {
+                      Alert.alert('提示', 'iOS 版本更新请通过 App Store');
+                    }
+                  } catch (error) {
+                    console.error('打开下载链接失败:', error);
+                    Alert.alert('错误', '打开下载链接失败，请稍后重试');
+                  }
+                },
+              },
+            ],
+          );
+        } else {
+          Alert.alert('版本更新', '当前已是最新版本');
+        }
+      } else {
+        Alert.alert('版本更新', '获取版本信息失败，请稍后重试');
+      }
+    } catch (error) {
+      console.error('检查版本更新失败:', error);
+      Alert.alert('错误', '检查版本更新失败，请检查网络连接后重试');
+    } finally {
+      setIsCheckingUpdate(false);
+    }
+  };
+
   // 菜单项
   const menuItems = [
     {
@@ -115,9 +193,7 @@ export const AboutScreen: React.FC = () => {
     {
       key: 'update',
       label: '版本更新',
-      onPress: () => {
-        Alert.alert('版本更新', `当前版本: v${appInfo.version} (${appInfo.build})`);
-      },
+      onPress: handleCheckUpdate,
     },
   ];
 
@@ -148,15 +224,20 @@ export const AboutScreen: React.FC = () => {
                 styles.menuItem,
                 index === menuItems.length - 1 && styles.menuItemLast,
               ]}
-              onPress={item.onPress}>
+              onPress={item.onPress}
+              disabled={item.key === 'update' && isCheckingUpdate}>
               <Text variant="bodyLarge" style={styles.menuLabel}>
                 {item.label}
               </Text>
-              <ChevronRightIcon
-                width={20}
-                height={20}
-                stroke={theme.colors.onSurfaceVariant}
-              />
+              {item.key === 'update' && isCheckingUpdate ? (
+                <ActivityIndicator size="small" color={theme.colors.primary} />
+              ) : (
+                <ChevronRightIcon
+                  width={20}
+                  height={20}
+                  stroke={theme.colors.onSurfaceVariant}
+                />
+              )}
             </TouchableOpacity>
           ))}
         </View>

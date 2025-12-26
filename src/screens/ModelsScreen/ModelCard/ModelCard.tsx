@@ -494,7 +494,7 @@ export const ModelCard: React.FC<ModelCardProps> = observer(
         try {
           startWorkerResult = await Promise.race([
             GpufModule.startRemoteWorker(
-              '8.140.251.142',  // 服务器地址
+              'agent.gpunexus.com',  // 服务器地址
               17000,            // 控制端口
               17001,            // 代理端口
               'TCP',            // 连接类型

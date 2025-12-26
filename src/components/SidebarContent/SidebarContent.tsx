@@ -24,6 +24,7 @@ import {
   UserCircleIcon,
   CpuChipIcon,
   ShoppingCartIcon,
+  CloudIcon,
 } from '../../assets/icons';
 import {L10nContext} from '../../utils';
 import {ROUTES} from '../../utils/navigationConstants';
@@ -146,7 +147,7 @@ export const SidebarContent: React.FC<DrawerContentComponentProps> = observer(
               <Drawer.Item
                 label={(l10n.components.sidebarContent.menuItems as any).myDevices || '我的设备'}
                 icon={() => (
-                  <CpuChipIcon
+                  <CloudIcon
                     width={24}
                     height={24}
                     stroke={theme.colors.primary}
@@ -245,6 +246,10 @@ export const SidebarContent: React.FC<DrawerContentComponentProps> = observer(
               onPress={() => props.navigation.navigate(ROUTES.SETTINGS)}
               style={styles.menuDrawerItem}
             />
+            {/* Beta版本标识 */}
+            <View style={styles.versionContainer}>
+              <Text style={styles.versionText}>Beta Version</Text>
+            </View>
           </View>
         </View>
         <RenameModal

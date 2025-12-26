@@ -58,4 +58,8 @@ export const createStyles = (theme: MD3Theme) =>
       backgroundColor: 'transparent',
       paddingTop: 8,
     },
+    versionContainer: {
+      alignItems: 'center',
+      paddingVertical: 8,
+    },
   });
