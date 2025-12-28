@@ -1,9 +1,13 @@
-import React, {useState, useEffect} from 'react';
-import {View, Alert} from 'react-native';
-
+import React, {useState, useEffect, useCallback} from 'react';
+import {
+  View,
+  StyleSheet,
+  Alert,
+  Keyboard,
+} from 'react-native';
+import {Text, Button, TextInput, ActivityIndicator} from 'react-native-paper';
 import {observer} from 'mobx-react-lite';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
-import {Text, Button, TextInput, ActivityIndicator} from 'react-native-paper';
 
 import {useTheme} from '../../hooks';
 import {Sheet} from '../Sheet';
@@ -37,6 +41,14 @@ export const MobileAuthSheet: React.FC<MobileAuthSheetProps> = observer(
 
     // 发送验证码
     const handleSendCode = async () => {
+      // 防止重复点击
+      if (authState.codeSending || authState.countdown > 0) {
+        return;
+      }
+
+      // 关闭键盘并清除焦点
+      Keyboard.dismiss();
+
       if (!phoneNumber.trim()) {
         Alert.alert('提示', '请输入手机号');
         return;
@@ -58,6 +70,14 @@ export const MobileAuthSheet: React.FC<MobileAuthSheetProps> = observer(
 
     // 登录/注册
     const handleSignIn = async () => {
+      // 防止重复点击
+      if (authState.isLoading) {
+        return;
+      }
+
+      // 关闭键盘并清除焦点
+      Keyboard.dismiss();
+
       if (!phoneNumber.trim()) {
         Alert.alert('提示', '请输入手机号');
         return;
@@ -117,6 +137,7 @@ export const MobileAuthSheet: React.FC<MobileAuthSheetProps> = observer(
         onClose={handleClose}
         snapPoints={['70%']}>
         <Sheet.ScrollView
+          keyboardShouldPersistTaps="handled"
           contentContainerStyle={[
             styles.container,
             {paddingBottom: insets.bottom + 16},
@@ -148,6 +169,8 @@ export const MobileAuthSheet: React.FC<MobileAuthSheetProps> = observer(
               mode="outlined"
               disabled={authState.isLoading}
               left={<TextInput.Affix text="+86" />}
+              blurOnSubmit={true}
+              returnKeyType="done"
             />
 
             {/* 验证码输入 + 发送按钮 */}
@@ -162,6 +185,8 @@ export const MobileAuthSheet: React.FC<MobileAuthSheetProps> = observer(
                 style={styles.codeInput}
                 mode="outlined"
                 disabled={authState.isLoading}
+                blurOnSubmit={true}
+                returnKeyType="done"
               />
               <Button
                 mode="outlined"
@@ -211,7 +236,7 @@ export const MobileAuthSheet: React.FC<MobileAuthSheetProps> = observer(
               disabled={authState.isLoading}
               style={styles.signInButton}
               contentStyle={styles.buttonContent}>
-              登录 / 注册
+              登录/注册
             </Button>
           </View>
 

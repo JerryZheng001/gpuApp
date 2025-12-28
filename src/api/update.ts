@@ -2,7 +2,8 @@
  * 版本更新 API 服务
  */
 
-const API_BASE_URL = 'http://agent.gpunexus.com';
+// const API_BASE_URL = 'http://agent.gpunexus.com';
+const API_BASE_URL = 'http://8.140.251.142:18081';
 
 // APK 版本信息接口
 export interface ApkVersionInfo {

@@ -8,7 +8,7 @@ interface Device {
   id: string;
   name: string;
   model: string;
-  status: 'running' | 'paused' | 'offline';
+  status: 'running' | 'paused' | 'offline' | 'active';
   currentCompute: string;
   cumulativeDuration: string;
   cumulativeRevenue: string;
@@ -32,6 +32,8 @@ export const DeviceHistoryTab: React.FC<DeviceHistoryTabProps> = ({
         return '#FF9800';
       case 'offline':
         return '#9E9E9E';
+      case 'active':
+        return '#2196F3'; // 蓝色表示可用状态
       default:
         return '#9E9E9E';
     }
@@ -45,6 +47,8 @@ export const DeviceHistoryTab: React.FC<DeviceHistoryTabProps> = ({
         return '已暂停';
       case 'offline':
         return '离线';
+      case 'active':
+        return '可用';
       default:
         return '未知';
     }

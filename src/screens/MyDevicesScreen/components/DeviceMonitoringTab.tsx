@@ -12,7 +12,7 @@ interface Device {
   id: string;
   name: string;
   model: string;
-  status: 'running' | 'paused' | 'offline';
+  status: 'running' | 'paused' | 'offline' | 'active';
   currentCompute: string;
   cumulativeDuration: string;
   cumulativeRevenue: string;
@@ -131,19 +131,24 @@ export const DeviceMonitoringTab: React.FC<DeviceMonitoringTabProps> = ({
   const cpuUsage = deviceApiData?.cpu_usage ?? 0;
   const memoryUsage = deviceApiData?.memory_usage ?? 0;
   
-  // 判断在线状态：online = 正常，offline = 离线，其他 = 异常
+  // 判断在线状态：online = 正常，offline = 离线，active = 可用，其他 = 异常
   const getOnlineStatus = () => {
     const status = deviceApiData?.client_status;
+    console.log('设备状态:', status);
     if (status === 'online') {
       return { text: '正常', isNormal: true };
     } else if (status === 'offline') {
       return { text: '离线', isNormal: false };
+    } else if (status === 'active') {
+      return { text: '可用', isNormal: true };
     } else {
       // 如果没有状态信息，根据设备状态判断
       if (device?.status === 'running') {
         return { text: '正常', isNormal: true };
       } else if (device?.status === 'offline') {
         return { text: '离线', isNormal: false };
+      } else if (device?.status === 'active') {
+        return { text: '可用', isNormal: true };
       }
       return { text: '异常', isNormal: false };
     }

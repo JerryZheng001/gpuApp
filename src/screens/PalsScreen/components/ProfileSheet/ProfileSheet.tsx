@@ -68,7 +68,7 @@ export const ProfileSheet: React.FC<ProfileSheetProps> = observer(
             </View>
             <View style={styles.userInfo}>
               <Text style={styles.userName}>{userName}</Text>
-              <Text style={styles.userEmail}>{user?.phone_number}</Text>
+              <Text style={styles.userEmail}>{user?.phone_number?.replace(/^\+86/, '')}</Text>
             </View>
           </View>
 

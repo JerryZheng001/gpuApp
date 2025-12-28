@@ -3,6 +3,7 @@
  * 后端地址: https://test.chengfangtech.com
  */
 
+// const API_BASE_URL = 'https://api.gpunexus.com';
 const API_BASE_URL = 'https://test.chengfangtech.com';
 
 // 配额记录响应

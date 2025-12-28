@@ -27,7 +27,7 @@ interface Device {
   id: string;
   name: string;
   model: string;
-  status: 'running' | 'paused' | 'offline';
+  status: 'running' | 'paused' | 'offline' | 'active';
   currentCompute: string;
   cumulativeDuration: string;
   cumulativeRevenue: string;
@@ -145,6 +145,8 @@ export const MyDevicesScreen: React.FC = observer(() => {
               ? 'running' 
               : deviceData.client_status === 'offline'
               ? 'offline'
+              : deviceData.client_status === 'active'
+              ? 'active'
               : 'paused',
             currentCompute: `${deviceData.memory_usage}%`,
             cumulativeDuration: `${deviceData.uptime_days} 天`,
@@ -163,9 +165,19 @@ export const MyDevicesScreen: React.FC = observer(() => {
         // 保存所有设备
         setAllDevices(mappedDevices);
 
-        // 默认使用列表第一个设备（而不是当前绑定的设备）
+        // 匹配当前设备的client_id来选择设备
         if (mappedDevices.length > 0) {
-          setCurrentDevice(mappedDevices[0]);
+          const currentClientId = deviceService.clientId;
+          const matchedDevice = mappedDevices.find(device => device.id === currentClientId);
+          
+          if (matchedDevice) {
+            console.log('找到匹配的设备:', matchedDevice);
+            setCurrentDevice(matchedDevice);
+          } else {
+            // 如果没有找到匹配的设备，使用第一个设备作为后备
+            setCurrentDevice(mappedDevices[0]);
+            console.warn(`未找到匹配当前设备 client_id (${currentClientId}) 的设备，使用第一个设备作为后备`);
+          }
         } else {
           setError('设备列表为空');
         }
@@ -183,17 +195,29 @@ export const MyDevicesScreen: React.FC = observer(() => {
   }, []);
 
   // 检测登录状态和设备绑定状态
-  const checkAuthAndDevice = useCallback(() => {
+  const checkAuthAndDevice = useCallback(async () => {
     console.log('MyDevicesScreen: 检测登录和设备绑定状态', {
       isAuthenticated: mobileAuthService.isAuthenticated,
       isDeviceBound: deviceService.isDeviceBound,
       clientId: deviceService.clientId,
       userId: deviceService.userId,
       currentUserId: mobileAuthService.user?.id,
+      user: mobileAuthService.user,
+      session: mobileAuthService.session,
+    });
+
+    // 等待一小段时间确保持久化数据完全加载
+    await new Promise(resolve => setTimeout(resolve, 100));
+
+    // 再次检查状态
+    console.log('MyDevicesScreen: 延迟后检查状态', {
+      isAuthenticated: mobileAuthService.isAuthenticated,
+      user: mobileAuthService.user,
+      session: mobileAuthService.session,
     });
 
     // 先检查是否已登录
-    if (!mobileAuthService.isAuthenticated) {
+    if (!mobileAuthService.isAuthenticated || !mobileAuthService.user) {
       setShowAuthBar(true);
       setLoading(false);
       setError('请先登录');
@@ -235,6 +259,7 @@ export const MyDevicesScreen: React.FC = observer(() => {
   useFocusEffect(
     useCallback(() => {
       // 每次进入页面时重新检测登录和设备绑定状态
+      setLoading(true);
       checkAuthAndDevice();
     }, [checkAuthAndDevice]),
   );

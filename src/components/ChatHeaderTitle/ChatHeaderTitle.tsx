@@ -259,7 +259,8 @@ export const ChatHeaderTitle: React.FC = observer(() => {
         try {
           startWorkerResult = await Promise.race([
             GpufModule.startRemoteWorker(
-              'agent.gpunexus.com',
+              // 'agent.gpunexus.com',
+              '8.140.251.142',
               17000,
               17001,
               'TCP',

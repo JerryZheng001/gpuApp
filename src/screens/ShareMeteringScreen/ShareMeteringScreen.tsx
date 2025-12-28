@@ -115,7 +115,7 @@ export const ShareMeteringScreen: React.FC = observer(() => {
           client_name: device.client_name,
         }));
         setDevices(deviceList);
-        console.log('✅ 成功获取设备列表，数量:', deviceList.length);
+        console.log('✅ 成功获取设备列表，数量:', deviceList,deviceList.length);
       } else {
         console.warn('⚠️ 获取设备列表失败:', response.message);
         setDevices([]);
@@ -128,11 +128,11 @@ export const ShareMeteringScreen: React.FC = observer(() => {
 
   // 获取配额记录
   const fetchQuotaRecords = useCallback(async () => {
-    console.log('=== 分享计量页面：检查登录状态 ===');
-    console.log('isAuthenticated:', mobileAuthService.isAuthenticated);
-    console.log('user:', mobileAuthService.user);
-    console.log('session:', mobileAuthService.session);
-    console.log('user.id:', mobileAuthService.user?.id);
+    // console.log('=== 分享计量页面：检查登录状态 ===');
+    // console.log('isAuthenticated:', mobileAuthService.isAuthenticated);
+    // console.log('user:', mobileAuthService.user);
+    // console.log('session:', mobileAuthService.session);
+    // console.log('user.id:', mobileAuthService.user?.id);
 
     // 如果未认证，等待一下看看是否是持久化数据还没恢复
     if (!mobileAuthService.isAuthenticated || !mobileAuthService.user) {
@@ -216,6 +216,13 @@ export const ShareMeteringScreen: React.FC = observer(() => {
     fetchQuotaRecords();
   }, [fetchDeviceList, fetchQuotaRecords]);
 
+  // 当选择的设备改变时，重新获取配额记录
+  useEffect(() => {
+    if (selectedClientId !== undefined || selectedDevice === '全部设备') {
+      fetchQuotaRecords();
+    }
+  }, [selectedClientId, selectedDevice, fetchQuotaRecords]);
+
   useFocusEffect(
     useCallback(() => {
       fetchDeviceList();
@@ -229,7 +236,7 @@ export const ShareMeteringScreen: React.FC = observer(() => {
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}>
         {/* Filter Buttons */}
-        {/* <View style={styles.filterContainer}>
+        <View style={styles.filterContainer}>
           <Menu
             visible={deviceMenuVisible}
             onDismiss={() => setDeviceMenuVisible(false)}
@@ -250,10 +257,6 @@ export const ShareMeteringScreen: React.FC = observer(() => {
                 setSelectedDevice('全部设备');
                 setSelectedClientId(undefined);
                 setDeviceMenuVisible(false);
-                // 重新获取配额记录
-                setTimeout(() => {
-                  fetchQuotaRecords();
-                }, 100);
               }}
               title="全部设备"
             />
@@ -264,16 +267,12 @@ export const ShareMeteringScreen: React.FC = observer(() => {
                   setSelectedDevice(device.client_name);
                   setSelectedClientId(device.client_id);
                   setDeviceMenuVisible(false);
-                  // 重新获取配额记录
-                  setTimeout(() => {
-                    fetchQuotaRecords();
-                  }, 100);
                 }}
                 title={device.client_name}
               />
             ))}
             </Menu>
-        </View> */}
+        </View>
 
         {/* Data Table */}
         <Card style={styles.tableCard}>

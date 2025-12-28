@@ -26,12 +26,14 @@ import {MobileAuthSheet} from '../../components/MobileAuth';
 
 type ProfileScreenNavigationProp = DrawerNavigationProp<RootDrawerParamList>;
 
-// 隐藏手机号中间四位
+// 隐藏手机号中间四位，并移除+86前缀
 const maskPhoneNumber = (phone: string): string => {
   if (!phone || phone.length < 11) {
     return phone;
   }
-  return phone.slice(0, 3) + '****' + phone.slice(7);
+  // 移除+86前缀
+  const cleanPhone = phone.replace(/^\+86/, '');
+  return cleanPhone.slice(0, 3) + '****' + cleanPhone.slice(7);
 };
 
 export const ProfileScreen: React.FC = observer(() => {
