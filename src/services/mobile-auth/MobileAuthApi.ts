@@ -69,7 +69,7 @@ export async function sendVerifyCode(
   try {
     const url = `${API_BASE_URL}/api/sms/sendverifyCode`;
     const requestBody = {
-      phone_num: phoneNumber,
+      phone_num: '+86'+phoneNumber,
     };
     
     // 详细的请求日志（可在 Chrome DevTools Network 标签中查看）
@@ -121,7 +121,7 @@ export async function mobileSignup(
   try {
     console.log('手机号登录/注册请求:', phoneNumber);
     const body: {phone_number: string; code: string; aff_code?: string} = {
-      phone_number: phoneNumber,
+      phone_number: '+86'+phoneNumber,
       code: code,
     };
 
