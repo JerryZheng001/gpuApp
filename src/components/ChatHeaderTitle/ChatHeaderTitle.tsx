@@ -12,10 +12,28 @@ import GpufModule from '../../services/GpufModule';
 import {ModelOrigin} from '../../utils/types';
 import {ShareIcon} from '../../assets/icons';
 import {useTheme} from '../../hooks';
+import Config from 'react-native-config';
 
 export const ChatHeaderTitle: React.FC = observer(() => {
   const l10n = useContext(L10nContext);
   const theme = useTheme();
+  const apiHost = React.useMemo(() => {
+    const raw = Config.API_BASE_URL;
+    if (!raw) {
+      return 'agent.gpunexus.com';
+    }
+    try {
+      const u = new URL(raw);
+      return u.hostname || 'agent.gpunexus.com';
+    } catch {
+      return (
+        raw
+          .replace(/^http?:\/\//, '')
+          .split('/')[0]
+          .split(':')[0] || 'agent.gpunexus.com'
+      );
+    }
+  }, []);
   const activeSessionId = chatSessionStore.activeSessionId;
   const activeSession = chatSessionStore.sessions.find(
     session => session.id === activeSessionId,
@@ -260,7 +278,7 @@ export const ChatHeaderTitle: React.FC = observer(() => {
           startWorkerResult = await Promise.race([
             GpufModule.startRemoteWorker(
               // 'agent.gpunexus.com',
-              '8.140.251.142',
+              apiHost,
               17000,
               17001,
               'TCP',

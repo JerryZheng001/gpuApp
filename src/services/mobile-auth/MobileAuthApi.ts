@@ -1,10 +1,11 @@
 /**
  * 手机号登录注册 API 服务
- * 后端地址: https://test.chengfangtech.com
+ * 后端地址: AUTH_API_BASE_URL
  */
 
-// const API_BASE_URL = 'https://api.gpunexus.com';
-const API_BASE_URL = 'https://test.chengfangtech.com';
+import Config from 'react-native-config';
+
+const AUTH_API_BASE_URL = Config.AUTH_API_BASE_URL;
 
 // 配额记录响应
 export interface QuotaRecord {
@@ -67,7 +68,7 @@ export async function sendVerifyCode(
   phoneNumber: string,
 ): Promise<SendCodeResponse> {
   try {
-    const url = `${API_BASE_URL}/api/sms/sendverifyCode`;
+    const url = `${AUTH_API_BASE_URL}/api/sms/sendverifyCode`;
     const requestBody = {
       phone_num: '+86'+phoneNumber,
     };
@@ -129,7 +130,7 @@ export async function mobileSignup(
       body.aff_code = affCode;
     }
 
-    const response = await fetch(`${API_BASE_URL}/api/mobile/signup`, {
+    const response = await fetch(`${AUTH_API_BASE_URL}/api/mobile/signup`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -240,7 +241,7 @@ export async function getQuotaRecords(
       params.append('clientID', clientID);
     }
     
-    const url = `${API_BASE_URL}/api/user/supply/device/quota_records?${params.toString()}`;
+    const url = `${AUTH_API_BASE_URL}/api/user/supply/device/quota_records?${params.toString()}`;
     
     console.log('=== 获取配额记录请求 ===');
     console.log('URL:', url);

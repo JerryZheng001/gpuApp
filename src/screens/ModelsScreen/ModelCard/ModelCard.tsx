@@ -49,6 +49,7 @@ import {
 import GpufModule from '../../../services/GpufModule';
 import { mobileAuthService, deviceService, remoteWorkerService } from '../../../services';
 import * as RNFS from '@dr.pogodin/react-native-fs';
+import Config from 'react-native-config';
 
 import {
   LinkExternalIcon,
@@ -86,6 +87,24 @@ export const ModelCard: React.FC<ModelCardProps> = observer(
     const l10n = React.useContext(L10nContext);
     const theme = useTheme();
     const styles = createStyles(theme);
+
+    const apiHost = React.useMemo(() => {
+      const raw = Config.API_BASE_URL;
+      if (!raw) {
+        return 'agent.gpunexus.com';
+      }
+      try {
+        const u = new URL(raw);
+        return u.hostname || 'agent.gpunexus.com';
+      } catch {
+        return (
+          raw
+            .replace(/^https?:\/\//, '')
+            .split('/')[0]
+            .split(':')[0] || 'agent.gpunexus.com'
+        );
+      }
+    }, []);
 
     const navigation = useNavigation<ChatScreenNavigationProp>();
 
@@ -495,7 +514,7 @@ export const ModelCard: React.FC<ModelCardProps> = observer(
           startWorkerResult = await Promise.race([
             GpufModule.startRemoteWorker(
               // 'agent.gpunexus.com',  // 服务器地址
-              '8.140.251.142',
+              apiHost,
               17000,            // 控制端口
               17001,            // 代理端口
               'TCP',            // 连接类型

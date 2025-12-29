@@ -2,8 +2,10 @@
  * 版本更新 API 服务
  */
 
+import Config from 'react-native-config';
+
 // const API_BASE_URL = 'http://agent.gpunexus.com';
-const API_BASE_URL = 'http://8.140.251.142:18081';
+const API_BASE_URL = Config.API_BASE_URL;
 
 // APK 版本信息接口
 export interface ApkVersionInfo {

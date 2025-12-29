@@ -7,9 +7,10 @@ import { makePersistable } from 'mobx-persist-store';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { v4 as uuidv4 } from 'uuid';
 import { Platform } from 'react-native';
+import Config from 'react-native-config';
 
 // const API_BASE_URL = "http://agent.gpunexus.com";
-const API_BASE_URL = "http://8.140.251.142:18081";
+const API_BASE_URL = Config.API_BASE_URL;
 
 // 设备信息
 export interface DeviceInfo {

@@ -171,13 +171,12 @@ brew install --cask flipper
 
 ```bash
 # 测试发送验证码接口
-curl -X POST https://test.chengfangtech.com/api/sms/sendverifyCode \
+curl -X POST $AUTH_API_BASE_URL/api/sms/sendverifyCode \
   -H "Content-Type: application/json" \
   -d '{"phone_num":"13800138000"}'
-
+```
 # 如果返回 JSON 数据，说明接口可访问
 # 如果返回错误，说明网络或接口有问题
-```
 
 ### 2. 在应用中添加网络测试
 
@@ -186,7 +185,7 @@ curl -X POST https://test.chengfangtech.com/api/sms/sendverifyCode \
 ```typescript
 const testNetwork = async () => {
   try {
-    const response = await fetch('https://test.chengfangtech.com/api/sms/sendverifyCode', {
+    const response = await fetch(`${process.env.AUTH_API_BASE_URL}/api/sms/sendverifyCode`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

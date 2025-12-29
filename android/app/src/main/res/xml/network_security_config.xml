@@ -40,16 +40,5 @@
         <!-- <domain includeSubdomains="false">8.140.251.142</domain> -->
         <domain includeSubdomains="false">agent.gpunexus.com</domain>
     </domain-config>
-    
-    <!-- Allow HTTPS traffic for mobile auth API -->
-    <domain-config cleartextTrafficPermitted="false">
-        <domain includeSubdomains="true">test.chengfangtech.com</domain>
-        <trust-anchors>
-            <!-- Trust system certificates -->
-            <certificates src="system" />
-            <!-- Trust user certificates (for debugging) -->
-            <certificates src="user" />
-        </trust-anchors>
-    </domain-config>
 </network-security-config>
 
