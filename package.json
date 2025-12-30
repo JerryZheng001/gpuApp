@@ -25,7 +25,6 @@
     "android:device": "bash scripts/setup-device-port-forward.sh && react-native run-android",
     "fix:metro": "bash scripts/fix-metro-connection.sh",
     "test": "jest"
-    
   },
   "dependencies": {
     "@dr.pogodin/react-native-fs": "^2.36.0",
@@ -59,6 +58,7 @@
     "react": "19.0.0",
     "react-hook-form": "^7.65.0",
     "react-native": "0.79.6",
+    "react-native-bootsplash": "^6.3.11",
     "react-native-code-highlighter": "^1.3.0",
     "react-native-config": "1.5.5",
     "react-native-device-info": "^14.1.1",

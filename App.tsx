@@ -23,6 +23,8 @@ import {initLocale} from './src/utils';
 import {L10nContext} from './src/utils';
 import {ROUTES} from './src/utils/navigationConstants';
 
+import BootSplash from 'react-native-bootsplash';
+
 import {
   SidebarContent,
   ModelsHeaderRight,
@@ -68,6 +70,13 @@ const App = observer(() => {
   // Initialize locale with the current language
   React.useEffect(() => {
     initLocale(uiStore.language);
+  }, []);
+
+  React.useEffect(() => {
+    const id = requestAnimationFrame(() => {
+      BootSplash.hide({fade: true});
+    });
+    return () => cancelAnimationFrame(id);
   }, []);
 
   return (
