@@ -99,7 +99,7 @@ export const ModelCard: React.FC<ModelCardProps> = observer(
       } catch {
         return (
           raw
-            .replace(/^https?:\/\//, '')
+            .replace(/^http?:\/\//, '')
             .split('/')[0]
             .split(':')[0] || 'agent.gpunexus.com'
         );
