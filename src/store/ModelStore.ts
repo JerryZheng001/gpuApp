@@ -29,6 +29,8 @@ import {defaultModels, MODEL_LIST_VERSION} from './defaultModels';
 
 import {downloadManager} from '../services/downloads';
 
+import {remoteModelService} from '../services/RemoteModelService';
+
 import {
   getHFDefaultSettings,
   getLocalModelDefaultSettings,
@@ -62,6 +64,7 @@ import {
 
 class ModelStore {
   models: Model[] = [];
+  remoteModels: Model[] = [];
   version: number | undefined = undefined; // Persisted version
 
   /**
@@ -69,6 +72,13 @@ class ModelStore {
    */
   get displayModels(): Model[] {
     return filterProjectionModels(this.models);
+  }
+
+  /**
+   * Get all models (local + remote)
+   */
+  get allModels(): Model[] {
+    return [...this.models, ...this.remoteModels];
   }
 
   appState: AppStateStatus = AppState.currentState;
@@ -110,6 +120,8 @@ class ModelStore {
   isStreaming: boolean = false;
 
   downloadError: ErrorState | null = null;
+  remoteLoading = false;
+  remoteError: string | null = null;
 
   constructor() {
     makeAutoObservable(this, {activeModel: computed});
@@ -693,6 +705,8 @@ class ModelStore {
     this.models.forEach(model => {
       this.checkFileExists(model);
     });
+    // Also fetch remote models when refreshing
+    this.fetchRemoteModels();
   };
 
   initializeDownloadStatus = async () => {
@@ -1227,7 +1241,8 @@ class ModelStore {
   };
 
   get activeModel(): Model | undefined {
-    return this.models.find(model => model.id === this.activeModelId);
+    return this.models.find(model => model.id === this.activeModelId) || 
+           this.remoteModels.find(model => model.id === this.activeModelId);
   }
 
   get lastUsedModel(): Model | undefined {
@@ -1712,11 +1727,12 @@ class ModelStore {
    */
   get availableModels(): Model[] {
     return filterProjectionModels(
-      this.models.filter(
+      this.allModels.filter(
         model =>
-          // Include models that are either local or downloaded
+          // Include models that are either local or downloaded or remote
           model.isLocal ||
           model.origin === ModelOrigin.LOCAL ||
+          model.origin === ModelOrigin.REMOTE ||
           model.isDownloaded,
       ),
     );
@@ -1738,6 +1754,11 @@ class ModelStore {
     // First check our cached flag for quick responses
     if (this.isMultimodalActive) {
       return true;
+    }
+
+    // Remote models don't have a local llama context; infer capability from model metadata
+    if (this.activeModel?.origin === ModelOrigin.REMOTE) {
+      return !!this.activeModel?.supportsMultimodal;
     }
 
     // If not active, check with the context
@@ -1769,7 +1790,7 @@ class ModelStore {
    * @returns Array of compatible projection models
    */
   getCompatibleProjectionModels = (modelId: string): Model[] => {
-    const model = this.models.find(m => m.id === modelId);
+    const model = this.allModels.find(m => m.id === modelId);
     if (!model || !model.supportsMultimodal) {
       return [];
     }
@@ -1779,7 +1800,7 @@ class ModelStore {
       model.compatibleProjectionModels &&
       model.compatibleProjectionModels.length > 0
     ) {
-      return this.models.filter(
+      return this.allModels.filter(
         m =>
           m.modelType === ModelType.PROJECTION &&
           model.compatibleProjectionModels?.includes(m.id),
@@ -2315,6 +2336,37 @@ class ModelStore {
   get isCurrentModelShared(): boolean {
     return this.sharedModelId === this.activeModelId;
   }
+
+  // Fetch remote models
+  fetchRemoteModels = async () => {
+    try {
+      runInAction(() => {
+        this.remoteLoading = true;
+        this.remoteError = null;
+      });
+
+      const remoteModels = await remoteModelService.getRemoteModels();
+      
+      runInAction(() => {
+        this.remoteModels = remoteModels;
+        this.remoteLoading = false;
+      });
+    } catch (error) {
+      console.error('Failed to fetch remote models:', error);
+      runInAction(() => {
+        this.remoteError = error instanceof Error ? error.message : 'Failed to fetch remote models';
+        this.remoteLoading = false;
+      });
+    }
+  };
+
+  // Get models by origin
+  getModelsByOrigin = (origin: ModelOrigin): Model[] => {
+    if (origin === ModelOrigin.REMOTE) {
+      return this.remoteModels;
+    }
+    return this.models.filter(model => model.origin === origin);
+  };
 
   // /**
   //  * Gets localized strings based on the current language from uiStore

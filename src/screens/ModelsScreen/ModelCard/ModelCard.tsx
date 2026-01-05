@@ -127,6 +127,7 @@ export const ModelCard: React.FC<ModelCardProps> = observer(
     const isDownloaded = model.isDownloaded;
     const isDownloading = modelStore.isDownloading(model.id);
     const isHfModel = model.origin === ModelOrigin.HF;
+    const isRemoteModel = model.origin === ModelOrigin.REMOTE;
 
     // Check projection model status for downloaded vision models
     const projectionModelStatus = modelStore.getProjectionModelStatus(model);
@@ -138,14 +139,14 @@ export const ModelCard: React.FC<ModelCardProps> = observer(
 
     // Check integrity when model is downloaded
     useEffect(() => {
-      if (isDownloaded) {
+      if (isDownloaded && !isRemoteModel) {
         checkModelFileIntegrity(model).then(({ errorMessage }) => {
           setIntegrityError(errorMessage);
         });
       } else {
         setIntegrityError(null);
       }
-    }, [isDownloaded, model]);
+    }, [isDownloaded, model, isRemoteModel]);
 
     const handleDelete = useCallback(() => {
       if (model.isDownloaded) {
@@ -691,8 +692,8 @@ export const ModelCard: React.FC<ModelCardProps> = observer(
         );
       }
 
-      if (!isDownloaded) {
-        // Not downloaded state
+      if (!isDownloaded && !isRemoteModel) {
+        // Not downloaded state (but not remote models)
         return (
           <View style={styles.actionButtonsRow}>
             <Button
@@ -705,17 +706,62 @@ export const ModelCard: React.FC<ModelCardProps> = observer(
                 styles.primaryActionButton,
                 storageOk
                   ? {
-                    backgroundColor: theme.colors.btnDownloadBg,
-                    borderColor: theme.colors.btnDownloadBorder,
-                  }
+                      backgroundColor: theme.colors.btnDownloadBg,
+                      borderColor: theme.colors.btnDownloadBorder,
+                    }
                   : {
-                    backgroundColor: theme.colors.surfaceDim,
-                    borderColor: theme.colors.outline,
-                  },
+                      backgroundColor: theme.colors.surfaceDim,
+                      borderColor: theme.colors.surfaceDim,
+                    },
               ]}
-              textColor={theme.colors.btnDownloadText}>
-              {l10n.models.modelCard.buttons.download}
+              textColor={storageOk ? theme.colors.btnDownloadText : theme.colors.onSurfaceDisabled}>
+              {l10n.common.download}
             </Button>
+          </View>
+        );
+      }
+
+      // Remote models are always "downloaded" (available)
+      if (isRemoteModel || isDownloaded) {
+        // Downloaded state - soft blue styling
+        return (
+          <View style={styles.actionButtonsRow}>
+
+            {/* Share Button - Only for local models, not remote models */}
+            {!isRemoteModel && (
+              <Button
+                testID="share-button"
+                icon={isSharing ? undefined : () => (
+                  <ShareIcon
+                    width={16}
+                    height={16}
+                    stroke={modelStore.sharedModelId === model.id ? theme.colors.onPrimary : theme.colors.primary}
+                  />
+                )}
+                mode={modelStore.sharedModelId === model.id ? "contained" : "outlined"}
+                onPress={handleShare}
+                disabled={isSharing}
+                loading={isSharing}
+                style={[
+                  styles.shareButton,
+                  modelStore.sharedModelId === model.id
+                    ? {
+                        backgroundColor: theme.colors.primary,
+                        borderColor: theme.colors.primary,
+                      }
+                    : {
+                        backgroundColor: theme.colors.surface,
+                        borderColor: theme.colors.primary,
+                      },
+                  isSharing && {
+                    opacity: 0.8,
+                  },
+                ]}
+                textColor={modelStore.sharedModelId === model.id ? theme.colors.onPrimary : theme.colors.primary}>
+                {isSharing ? "连接中..." : (modelStore.sharedModelId === model.id ? "已分享" : "分享")}
+              </Button>
+            )}
+            {renderModelLoadButton()}
 
             <TouchableOpacity
               testID="settings-button"
@@ -880,6 +926,37 @@ export const ModelCard: React.FC<ModelCardProps> = observer(
               color={theme.colors.btnPrimaryText}
               size="small"
             />
+          </Button>
+        );
+      }
+
+      if (isRemoteModel) {
+        const handlePress = () => {
+          modelStore.setActiveModel(model.id);
+          navigation.navigate('Chat');
+        };
+
+        return (
+          <Button
+            testID={isActiveModel ? 'using-button' : 'use-button'}
+            icon={isActiveModel ? 'check-circle' : 'play-circle-outline'}
+            onPress={handlePress}
+            style={[
+              styles.primaryActionButton,
+              isActiveModel
+                ? {
+                    backgroundColor: theme.colors.btnReadyBg,
+                    borderColor: theme.colors.btnReadyBorder,
+                  }
+                : {
+                    backgroundColor: theme.colors.btnPrimaryBg,
+                    borderColor: theme.colors.btnPrimaryBorder,
+                  },
+            ]}
+            textColor={
+              isActiveModel ? theme.colors.btnReadyText : theme.colors.btnPrimaryText
+            }>
+            {isActiveModel ? '使用中' : '使用'}
           </Button>
         );
       }

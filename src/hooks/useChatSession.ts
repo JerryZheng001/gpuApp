@@ -7,8 +7,9 @@ import {chatSessionRepository} from '../repositories/ChatSessionRepository';
 import {randId} from '../utils';
 import {L10nContext} from '../utils';
 import {chatSessionStore, modelStore, palStore, uiStore} from '../store';
+import {remoteChatService} from '../services/RemoteChatService';
 
-import {MessageType, User} from '../utils/types';
+import {MessageType, User, ModelOrigin} from '../utils/types';
 import {createMultimodalWarning} from '../utils/errors';
 import {resolveSystemMessages} from '../utils/systemPromptResolver';
 import {convertToChatMessages, removeThinkingParts} from '../utils/chat';
@@ -23,7 +24,7 @@ const prepareCompletion = async ({
   imageUris,
   message,
   systemMessages,
-  context,
+  contextId,
   assistant,
   conversationIdRef,
   isMultimodalEnabled,
@@ -33,7 +34,7 @@ const prepareCompletion = async ({
   imageUris: string[];
   message: MessageType.PartialText;
   systemMessages: Array<{role: 'system'; content: string}>;
-  context: any;
+  contextId: string;
   assistant: User;
   conversationIdRef: string;
   isMultimodalEnabled: boolean;
@@ -135,7 +136,7 @@ const prepareCompletion = async ({
     text: '',
     type: 'text',
     metadata: {
-      contextId: context.id,
+      contextId,
       conversationId: conversationIdRef,
       copyable: true,
       multimodal: hasImages, // Simple check based on presence of images
@@ -165,6 +166,7 @@ export const useChatSession = (
 ) => {
   const l10n = React.useContext(L10nContext);
   const conversationIdRef = useRef<string>(randId());
+  const abortController = useRef<AbortController | null>(null);
 
   const addMessage = async (message: MessageType.Any) => {
     await chatSessionStore.addMessageToCurrentSession(message);
@@ -183,8 +185,11 @@ export const useChatSession = (
   };
 
   const handleSendPress = async (message: MessageType.PartialText) => {
-    const context = modelStore.context;
-    if (!context) {
+    const isRemoteModel = modelStore.activeModel?.origin === ModelOrigin.REMOTE;
+    const localContext = modelStore.context;
+    const contextId = isRemoteModel ? 'remote' : String(localContext?.id ?? '');
+
+    if (!contextId) {
       await addSystemMessage(l10n.chat.modelNotLoaded);
       return;
     }
@@ -194,7 +199,9 @@ export const useChatSession = (
     // Check if we have images in the current message
     const hasImages = imageUris && imageUris.length > 0;
 
-    const isMultimodalEnabled = await modelStore.isMultimodalEnabled();
+    const isMultimodalEnabled = isRemoteModel
+      ? !!modelStore.activeModel?.supportsMultimodal
+      : await modelStore.isMultimodalEnabled();
 
     // Get the current session messages BEFORE adding the new user message
     // Use toJS to get a snapshot and avoid MobX reactivity issues
@@ -209,13 +216,18 @@ export const useChatSession = (
       type: 'text',
       imageUris: hasImages ? imageUris : undefined, // Include images directly in the text message
       metadata: {
-        contextId: context.id,
+        contextId,
         conversationId: conversationIdRef.current,
         copyable: true,
         multimodal: hasImages, // Mark as multimodal if it has images
       },
     };
     await addMessage(textMessage);
+
+    // RemoteChatService will build OpenAI messages from the `messages` argument and
+    // does NOT use completionParams.messages. Ensure the current user message is included.
+    const messagesForRemoteRequest = [...currentMessages, textMessage];
+
     modelStore.setInferencing(true);
     modelStore.setIsStreaming(false);
     chatSessionStore.setIsGenerating(true);
@@ -247,7 +259,7 @@ export const useChatSession = (
       imageUris: imageUris || [],
       message,
       systemMessages,
-      context,
+      contextId,
       assistant,
       conversationIdRef: conversationIdRef.current,
       isMultimodalEnabled,
@@ -257,13 +269,99 @@ export const useChatSession = (
 
     currentMessageInfo.current = messageInfo;
 
+    // Capture IDs locally so updates can't drift even if refs change later.
+    const assistantMessageId = messageInfo.id;
+    const assistantSessionId = messageInfo.sessionId;
+
     try {
       // Track time to first token
       const completionStartTime = Date.now();
       let timeToFirstToken: number | null = null;
+      let result: any;
 
-      const result = await context.completion(cleanCompletionParams, data => {
-        if (currentMessageInfo.current) {
+      // Check if this is a remote model
+      const isRemoteModel = modelStore.activeModel?.origin === ModelOrigin.REMOTE;
+
+      if (isRemoteModel) {
+        abortController.current?.abort();
+        abortController.current = new AbortController();
+
+        const remoteModelName =
+          modelStore.activeModel?.name ||
+          String(modelStore.activeModel?.id || '').replace(/^remote_/, '');
+        let streamedContent = '';
+        let streamedReasoning = '';
+        // Use remote chat service for remote models
+        await remoteChatService.streamChatCompletion(
+          messagesForRemoteRequest,
+          systemMessages,
+          {
+            ...cleanCompletionParams,
+            model: remoteModelName,
+            group: 'default',
+          },
+          data => {
+            // Capture time to first token on the first token received
+            if (timeToFirstToken === null && (data.token || data.content)) {
+              timeToFirstToken = Date.now() - completionStartTime;
+            }
+
+            if (!modelStore.isStreaming) {
+              modelStore.setIsStreaming(true);
+            }
+
+            // Use content and reasoning_content from the streaming data
+            const {content = '', reasoning_content: reasoningContent} = data;
+
+            if (content) {
+              streamedContent += content;
+            }
+            if (reasoningContent) {
+              streamedReasoning += reasoningContent;
+            }
+
+            // Update message with the separated content
+            if (content || reasoningContent) {
+              // Build the update object
+              const update: any = {
+                metadata: {
+                  partialCompletionResult: streamedContent,
+                  partialReasoningResult: streamedReasoning,
+                },
+              };
+
+              // Add text if content exists
+              if (streamedContent) {
+                update.text = streamedContent;
+              }
+
+              // Update the message in the store
+              chatSessionStore.updateMessageStreaming(
+                assistantMessageId,
+                assistantSessionId,
+                update,
+              );
+            }
+          },
+          abortController.current.signal,
+        );
+
+        // Remote streaming API does not return a completion object; normalize a result
+        // so downstream logging/metadata has useful info.
+        result = {
+          timings: {},
+          content: streamedContent,
+          reasoning_content: streamedReasoning,
+          text: streamedContent,
+        };
+        abortController.current = null;
+      } else {
+        // Use local context completion for local models
+        if (!localContext) {
+          throw new Error('Local model context not available');
+        }
+
+        result = await localContext.completion(cleanCompletionParams, data => {
           // Capture time to first token on the first token received
           if (timeToFirstToken === null && (data.token || data.content)) {
             timeToFirstToken = Date.now() - completionStartTime;
@@ -282,48 +380,47 @@ export const useChatSession = (
             // Build the update object
             const update: any = {
               metadata: {
-                partialCompletionResult: {
-                  reasoning_content: reasoningContent,
-                  content: content.replace(/^\s+/, ''),
-                },
+                partialCompletionResult: content,
+                partialReasoningResult: reasoningContent,
               },
             };
 
-            // Only update text if we have actual content
+            // Add text if content exists
             if (content) {
-              update.text = content.replace(/^\s+/, '');
+              update.text = content;
             }
 
-            // Use the store's streaming update method which properly triggers reactivity
+            // Update the message in the store
             chatSessionStore.updateMessageStreaming(
-              currentMessageInfo.current.id,
-              currentMessageInfo.current.sessionId,
+              assistantMessageId,
+              assistantSessionId,
               update,
             );
           }
-        }
-      });
+        });
+      }
 
       // Log completion result with time to first token for debugging
       if (__DEV__) {
+        const timings = result?.timings ?? {};
         console.log('Completion result:', {
-          ...result.timings,
+          ...timings,
           time_to_first_token_ms: timeToFirstToken,
-          reasoning_content: result.reasoning_content,
-          content: result.content,
-          text: result.text,
+          reasoning_content: result?.reasoning_content,
+          content: result?.content,
+          text: result?.text,
         });
         console.log('result', result);
       }
 
       // Update final completion metadata
       await chatSessionStore.updateMessage(
-        currentMessageInfo.current.id,
-        currentMessageInfo.current.sessionId,
+        assistantMessageId,
+        assistantSessionId,
         {
           metadata: {
             timings: {
-              ...result.timings,
+              ...(result?.timings ?? {}),
               time_to_first_token_ms: timeToFirstToken,
             },
             copyable: true,
@@ -342,19 +439,17 @@ export const useChatSession = (
       chatSessionStore.setIsGenerating(false);
 
       // Clean up the empty assistant message that was created before the error
-      if (currentMessageInfo.current) {
+      if (assistantMessageId) {
         try {
-          await chatSessionRepository.deleteMessage(
-            currentMessageInfo.current.id,
-          );
+          await chatSessionRepository.deleteMessage(assistantMessageId);
           // Also remove from local state
           const session = chatSessionStore.sessions.find(
-            s => s.id === currentMessageInfo.current!.sessionId,
+            s => s.id === assistantSessionId,
           );
           if (session) {
             runInAction(() => {
               session.messages = session.messages.filter(
-                msg => msg.id !== currentMessageInfo.current!.id,
+                msg => msg.id !== assistantMessageId,
               );
             });
           }
@@ -389,9 +484,15 @@ export const useChatSession = (
   };
 
   const handleStopPress = async () => {
+    const isRemoteModel = modelStore.activeModel?.origin === ModelOrigin.REMOTE;
     const context = modelStore.context;
-    if (modelStore.inferencing && context) {
-      context.stopCompletion();
+    if (modelStore.inferencing) {
+      if (isRemoteModel) {
+        abortController.current?.abort();
+        abortController.current = null;
+      } else if (context) {
+        context.stopCompletion();
+      }
     }
     modelStore.setInferencing(false);
     modelStore.setIsStreaming(false);

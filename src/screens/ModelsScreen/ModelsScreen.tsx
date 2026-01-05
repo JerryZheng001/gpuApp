@@ -98,11 +98,15 @@ export const ModelsScreen: React.FC = observer(() => {
       },
     );
 
-    // Clean up the reaction when component unmounts
+    // Fetch remote models when switching to remote tab
+    if (activeTab === 'remote' && modelStore.remoteModels.length === 0) {
+      modelStore.fetchRemoteModels();
+    }
+
     return () => {
       errorDisposer();
     };
-  }, []); // Only run setup once
+  }, [activeTab]);
 
   const onRefresh = async () => {
     setRefreshing(true);
@@ -208,7 +212,7 @@ export const ModelsScreen: React.FC = observer(() => {
   };
 
   const activeModelId = modelStore.activeModel?.id;
-  const models = modelStore.displayModels;
+  const models = modelStore.allModels;
 
   // Filter and sort models based on active tab and filters
   // Use computed for MobX reactivity, but filter by activeTab outside
@@ -230,7 +234,9 @@ export const ModelsScreen: React.FC = observer(() => {
       });
     }
     if (filters.includes('hf')) {
-      result = result.filter(model => model.origin === ModelOrigin.HF);
+      result = result.filter(
+        model => model.origin === ModelOrigin.HF || model.origin === ModelOrigin.REMOTE,
+      );
     }
     return result;
   }).get();
@@ -244,8 +250,10 @@ export const ModelsScreen: React.FC = observer(() => {
           model.origin === ModelOrigin.LOCAL || model.origin === ModelOrigin.PRESET,
       );
     } else {
-      // Show remote (HF) models
-      return baseFilteredModels.filter(model => model.origin === ModelOrigin.HF);
+      // Show remote models (HF + REMOTE)
+      return baseFilteredModels.filter(
+        model => model.origin === ModelOrigin.HF || model.origin === ModelOrigin.REMOTE,
+      );
     }
   }, [activeTab, baseFilteredModels]);
 
@@ -276,6 +284,8 @@ export const ModelsScreen: React.FC = observer(() => {
         const groupKey =
           item.origin === ModelOrigin.LOCAL || item.isLocal
             ? l10n.models.labels.localModel
+            : item.origin === ModelOrigin.REMOTE
+            ? l10n.models.labels.remoteModel || 'Remote Models'
             : item.type || l10n.models.labels.unknownGroup;
 
         if (!acc[groupKey]) {
@@ -337,9 +347,11 @@ export const ModelsScreen: React.FC = observer(() => {
     }))
     .filter(group => group.items.length > 0);
 
-  // Show empty state for remote models tab if no models found
+  // Show empty state for remote models tab if no models found and not loading
   const showEmptyState =
-    activeTab === 'remote' && flatListModels.length === 0;
+    activeTab === 'remote' && 
+    flatListModels.length === 0 && 
+    !modelStore.remoteLoading;
 
   return (
     <View style={styles.container}>
@@ -411,7 +423,7 @@ export const ModelsScreen: React.FC = observer(() => {
         />
       </View>
 
-      {showEmptyState ? (
+      {modelStore.remoteLoading && activeTab === 'remote' ? (
         <View style={styles.emptyStateContainer}>
           <View style={styles.emptyStateIconContainer}>
             <CloudIcon
@@ -421,11 +433,26 @@ export const ModelsScreen: React.FC = observer(() => {
             />
           </View>
           <Text style={styles.emptyStateTitle}>
-            {l10n.models.labels.comingSoon || 'Coming Soon'}
+            加载远程模型中...
           </Text>
           <Text style={styles.emptyStateSubtitle}>
-            {l10n.models.labels.remoteModelsComingSoon ||
-              '远程模型功能即将上线，敬请期待'}
+            正在获取可用的远程模型
+          </Text>
+        </View>
+      ) : showEmptyState ? (
+        <View style={styles.emptyStateContainer}>
+          <View style={styles.emptyStateIconContainer}>
+            <CloudIcon
+              stroke={theme.colors.primary}
+              width={64}
+              height={64}
+            />
+          </View>
+          <Text style={styles.emptyStateTitle}>
+            暂无远程模型
+          </Text>
+          <Text style={styles.emptyStateSubtitle}>
+            请稍后再试或检查网络连接
           </Text>
         </View>
       ) : (
