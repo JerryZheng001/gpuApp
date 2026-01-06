@@ -10,6 +10,7 @@ export const ROUTES = {
   APP_INFO: 'App Info',
   PROFILE: 'Profile',
   SHARE_METERING: 'Share Metering',
+  USAGE_METERING: 'Usage Metering',
   REVENUE_BILL: 'Revenue Bill',
   MY_DEVICES: 'My Devices',
   RECHARGE: 'Recharge',

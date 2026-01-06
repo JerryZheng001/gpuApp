@@ -62,4 +62,63 @@ export const createStyles = (theme: MD3Theme) =>
       alignItems: 'center',
       paddingVertical: 8,
     },
+    usageInfoWrapper: {
+      position: 'relative',
+    },
+    usageInfoChevron: {
+      position: 'absolute',
+      right: 18,
+      top: 0,
+      bottom: 0,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    usageInfoChildren: {
+      marginTop: 0,
+      marginBottom: 0,
+    },
+    usageInfoChildWrapper: {
+      marginLeft: 24,
+    },
+    subMenuContainer: {
+      marginLeft: 20,
+      marginRight: 12,
+      marginTop: 2,
+      marginBottom: 10,
+      paddingVertical: 4,
+      borderLeftWidth: 1,
+      borderLeftColor: theme.colors.onSurfaceVariant,
+      borderRadius: 8,
+      opacity: 0.9,
+    },
+    subMenuItem: {
+      height: 38,
+      marginLeft: 8,
+      marginRight: 4,
+      borderRadius: 8,
+    },
+    subMenuRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      paddingVertical: 10,
+      paddingHorizontal: 8,
+      marginLeft: 8,
+      marginRight: 4,
+      borderRadius: 8,
+    },
+    subMenuIcon: {
+      width: 6,
+      height: 6,
+      borderRadius: 3,
+      backgroundColor: theme.colors.onSurfaceVariant,
+      marginLeft: 10,
+      opacity: 0.7,
+    },
+    subMenuLabel: {
+      color: theme.colors.onSurfaceVariant,
+      fontSize: 13,
+    },
+    usageInfoLabel: {
+      fontWeight: '600',
+    },
   });

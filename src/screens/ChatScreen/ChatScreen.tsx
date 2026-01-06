@@ -13,7 +13,7 @@ import {modelStore, chatSessionStore, palStore, uiStore} from '../../store';
 import {hasVideoCapability} from '../../utils/pal-capabilities';
 
 import {L10nContext} from '../../utils';
-import {MessageType} from '../../utils/types';
+import {MessageType, ModelOrigin} from '../../utils/types';
 import {user, assistant} from '../../utils/chat';
 
 import {VideoPalScreen} from './VideoPalScreen';
@@ -50,6 +50,8 @@ export const ChatScreen: React.FC = observer(() => {
     ? palStore.pals.find(p => p.id === activePalId)
     : undefined;
   const isVideoPal = activePal && hasVideoCapability(activePal);
+
+  const isRemoteModel = modelStore.activeModel?.origin === ModelOrigin.REMOTE;
 
   // State for pal sheet
   const [isPalSheetVisible, setIsPalSheetVisible] = useState(false);
@@ -148,11 +150,12 @@ export const ChatScreen: React.FC = observer(() => {
           onThinkingToggle: handleThinkingToggle,
         }}
         textInputProps={{
-          placeholder: !modelStore.context
-            ? modelStore.isContextLoading
-              ? l10n.chat.loadingModel
-              : l10n.chat.modelNotLoaded
-            : l10n.chat.typeYourMessage,
+          placeholder:
+            !modelStore.context && !isRemoteModel
+              ? modelStore.isContextLoading
+                ? l10n.chat.loadingModel
+                : l10n.chat.modelNotLoaded
+              : l10n.chat.typeYourMessage,
         }}
       />
       {uiStore.chatWarning && (

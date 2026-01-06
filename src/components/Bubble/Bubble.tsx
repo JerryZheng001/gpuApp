@@ -37,21 +37,39 @@ export const Bubble = ({
   const currentUserIsAuthor = user?.id === message.author.id;
   const {copyable, timings} = message.metadata || {};
 
-  const timingsString = l10n.components.bubble.timingsString
-    .replace('{{predictedMs}}', timings?.predicted_per_token_ms?.toFixed())
-    .replace(
-      '{{predictedPerSecond}}',
-      timings?.predicted_per_second?.toFixed(2),
-    );
+  const hasPredictedTiming =
+    typeof timings?.predicted_per_token_ms === 'number' &&
+    Number.isFinite(timings.predicted_per_token_ms) &&
+    typeof timings?.predicted_per_second === 'number' &&
+    Number.isFinite(timings.predicted_per_second);
 
-  // Add time to first token if available
-  const timeToFirstTokenString =
+  const hasTimeToFirstToken =
     timings?.time_to_first_token_ms !== undefined &&
-    timings?.time_to_first_token_ms !== null
-      ? `, ${timings.time_to_first_token_ms}ms TTFT`
-      : '';
+    timings?.time_to_first_token_ms !== null;
 
-  const fullTimingsString = timingsString + timeToFirstTokenString;
+  const predictedTimingString = hasPredictedTiming
+    ? l10n.components.bubble.timingsString
+        .replace(
+          '{{predictedMs}}',
+          timings.predicted_per_token_ms.toFixed(),
+        )
+        .replace(
+          '{{predictedPerSecond}}',
+          timings.predicted_per_second.toFixed(2),
+        )
+    : '';
+
+  const ttftString = hasTimeToFirstToken
+    ? `${timings?.time_to_first_token_ms}ms TTFT`
+    : '';
+
+  const fullTimingsString = predictedTimingString
+    ? ttftString
+      ? `${predictedTimingString}, ${ttftString}`
+      : predictedTimingString
+    : ttftString;
+
+  const shouldShowTimingRow = !!timings && fullTimingsString.length > 0;
 
   const {contentContainer, dateHeaderContainer, dateHeader, iconContainer} =
     styles({
@@ -77,14 +95,14 @@ export const Bubble = ({
         },
       ]}>
       {child}
-      {timings && (
+      {shouldShowTimingRow && (
         <View style={dateHeaderContainer}>
           {copyable && (
             <TouchableOpacity onPress={copyToClipboard}>
               <Icon name="content-copy" style={iconContainer} />
             </TouchableOpacity>
           )}
-          {timings && <Text style={dateHeader}>{fullTimingsString}</Text>}
+          <Text style={dateHeader}>{fullTimingsString}</Text>
         </View>
       )}
     </Animated.View>

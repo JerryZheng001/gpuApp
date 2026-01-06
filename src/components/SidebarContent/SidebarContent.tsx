@@ -18,11 +18,14 @@ import {
   PalIcon,
   ModelIcon,
   SettingsIcon,
-  AppInfoIcon,
+  ChevronDownIcon,
+  ChevronUpIcon,
+  CpuChipIcon,
+  ShareIcon,
+  ClockFastForwardIcon,
   EditIcon,
   TrashIcon,
   UserCircleIcon,
-  CpuChipIcon,
   ShoppingCartIcon,
   CloudIcon,
 } from '../../assets/icons';
@@ -35,6 +38,7 @@ export const SidebarContent: React.FC<DrawerContentComponentProps> = observer(
     const [menuPosition, setMenuPosition] = useState({x: 0, y: 0});
     const [sessionToRename, setSessionToRename] =
       useState<SessionMetaData | null>(null);
+    const [usageInfoExpanded, setUsageInfoExpanded] = useState(false);
 
     const theme = useTheme();
     const insets = useSafeAreaInsets();
@@ -119,18 +123,76 @@ export const SidebarContent: React.FC<DrawerContentComponentProps> = observer(
                 onPress={() => props.navigation.navigate(ROUTES.BENCHMARK)}
                 style={styles.menuDrawerItem}
               /> */}
-              <Drawer.Item
-                label={l10n.components.sidebarContent.menuItems.shareMetering || '分享计量'}
-                icon={() => (
-                  <CpuChipIcon
-                    width={24}
-                    height={24}
-                    stroke={theme.colors.primary}
-                  />
-                )}
-                onPress={() => props.navigation.navigate(ROUTES.SHARE_METERING)}
-                style={styles.menuDrawerItem}
-              />
+              <View style={styles.usageInfoWrapper}>
+                <Drawer.Item
+                  label={l10n.components.sidebarContent.menuItems.usageInfo || '用量信息'}
+                  icon={() => (
+                    <CpuChipIcon
+                      width={24}
+                      height={24}
+                      stroke={theme.colors.primary}
+                    />
+                  )}
+                  onPress={() => setUsageInfoExpanded(prev => !prev)}
+                  style={styles.menuDrawerItem}
+                />
+                <View pointerEvents="none" style={styles.usageInfoChevron}>
+                  {usageInfoExpanded ? (
+                    <ChevronUpIcon
+                      width={20}
+                      height={20}
+                      stroke={theme.colors.onSurfaceVariant}
+                    />
+                  ) : (
+                    <ChevronDownIcon
+                      width={20}
+                      height={20}
+                      stroke={theme.colors.onSurfaceVariant}
+                    />
+                  )}
+                </View>
+              </View>
+
+              {usageInfoExpanded && (
+                <View style={styles.usageInfoChildren}>
+                  <View style={styles.usageInfoChildWrapper}>
+                    <Drawer.Item
+                      label={
+                        l10n.components.sidebarContent.menuItems.shareMetering ||
+                        '分享计量'
+                      }
+                      icon={() => (
+                        <ShareIcon
+                          width={24}
+                          height={24}
+                          stroke={theme.colors.primary}
+                        />
+                      )}
+                      onPress={() => props.navigation.navigate(ROUTES.SHARE_METERING)}
+                      style={styles.menuDrawerItem}
+                    />
+                  </View>
+                  <View style={styles.usageInfoChildWrapper}>
+                    <Drawer.Item
+                      label={
+                        l10n.components.sidebarContent.menuItems.usageMetering ||
+                        '使用计量'
+                      }
+                      icon={() => (
+                        <ClockFastForwardIcon
+                          width={24}
+                          height={24}
+                          stroke={theme.colors.primary}
+                        />
+                      )}
+                      onPress={() => {
+                        console.log('Usage Metering clicked');
+                      }}
+                      style={styles.menuDrawerItem}
+                    />
+                  </View>
+                </View>
+              )}
               {/* 收益账单菜单项已隐藏 */}
               {/* <Drawer.Item
                 label={l10n.components.sidebarContent.menuItems.revenueBill || '收益账单'}
