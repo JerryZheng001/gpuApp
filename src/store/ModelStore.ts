@@ -973,6 +973,21 @@ class ModelStore {
    * @returns The initialized LlamaContext
    */
   initContext = async (model: Model, mmProjPath?: string) => {
+    // Handle remote models - they don't need local context initialization
+    if (model.origin === ModelOrigin.REMOTE) {
+      await this.releaseContext();
+      runInAction(() => {
+        this.activeModelId = model.id;
+        this.lastUsedModelId = model.id;
+        this.isContextLoading = false;
+        this.loadingModel = undefined;
+        this.isMultimodalActive = false;
+        this.activeProjectionModelId = undefined;
+      });
+      console.log('Remote model selected:', model.id);
+      return null; // Remote models don't have a local context
+    }
+
     await this.releaseContext();
     const filePath = await this.getModelFullPath(model);
     if (!filePath) {

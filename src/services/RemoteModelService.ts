@@ -107,6 +107,17 @@ class RemoteModelService {
       return result.data.map((remoteModel: RemoteModelData, index: number) => {
         const enableGroups = remoteModel.enable_groups || ['default'];
         const isFree = enableGroups.includes('free');
+        
+        // 添加详细日志以调试分组问题
+        if (remoteModel.model_name === 'LongCat-Flash-Chat') {
+          console.log('LongCat-Flash-Chat model data:', {
+            model_name: remoteModel.model_name,
+            enable_groups: remoteModel.enable_groups,
+            enable_groups_type: typeof remoteModel.enable_groups,
+            isFree,
+            enableGroups,
+          });
+        }
 
         return {
         id: `remote_${remoteModel.model_name}`, // 使用模型名称作为稳定的ID

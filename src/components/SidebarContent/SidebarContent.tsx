@@ -157,6 +157,21 @@ export const SidebarContent: React.FC<DrawerContentComponentProps> = observer(
                 style={styles.menuDrawerItem}
               />
               <Drawer.Item
+                label={l10n.components.sidebarContent.menuItems.recharge || '充值'}
+                icon={() => (
+                  <ShoppingCartIcon
+                    width={24}
+                    height={24}
+                    stroke={theme.colors.primary}
+                  />
+                )}
+                onPress={() => {
+                  // TODO: 实现充值功能
+                  console.log('Recharge clicked');
+                }}
+                style={styles.menuDrawerItem}
+              />
+              <Drawer.Item
                 label={l10n.components.sidebarContent.menuItems.profile || 'Profile'}
                 icon={() => (
                   <UserCircleIcon

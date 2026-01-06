@@ -252,6 +252,7 @@ class RemoteChatService {
       xhr.setRequestHeader('New-Api-User', String(mobileAuthService.user?.id ?? ''));
       xhr.setRequestHeader('Authorization', FIXED_BEARER_TOKEN);
 
+      console.log('XHR sending request body:', body);
       xhr.send(body);
     });
   }
@@ -276,7 +277,6 @@ class RemoteChatService {
       // 构建OpenAI API参数，包含所有必要字段
       const openAIParams: any = {
         model: completionParams.model || 'gpt-4o',
-        group: completionParams.group || 'default', // 添加group参数
         messages: openAIMessages,
         temperature: completionParams.temperature,
         max_tokens: completionParams.max_tokens,
@@ -286,11 +286,17 @@ class RemoteChatService {
         stream: true,
         stream_options: { include_usage: true },
       };
+      
+      // 只有当 group 有值时才添加
+      if (completionParams.group !== undefined) {
+        openAIParams.group = completionParams.group;
+      }
 
       console.log('Remote chat request:', {
         url: `${this.baseURL}/v1/chat/completions`,
         params: openAIParams,
       });
+      console.log('Group parameter being sent:', openAIParams.group);
 
       if (this.isReactNative()) {
         await this.streamChatCompletionWithXhr(
@@ -404,7 +410,6 @@ class RemoteChatService {
       // 构建OpenAI API参数
       const openAIParams: any = {
         model: completionParams.model || 'gpt-4o',
-        group: completionParams.group || 'default',
         messages: openAIMessages,
         temperature: completionParams.temperature,
         max_tokens: completionParams.max_tokens,
@@ -413,6 +418,11 @@ class RemoteChatService {
         presence_penalty: completionParams.presence_penalty,
         stream: false,
       };
+      
+      // 只有当 group 有值时才添加
+      if (completionParams.group !== undefined) {
+        openAIParams.group = completionParams.group;
+      }
 
       console.log('Remote chat request (non-stream):', {
         url: `${this.baseURL}/v1/chat/completions`,

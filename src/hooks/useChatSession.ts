@@ -290,13 +290,35 @@ export const useChatSession = (
         let streamedContent = '';
         let streamedReasoning = '';
         // Use remote chat service for remote models
+        const remoteModel = modelStore.activeModel as any;
+        const availableGroups = remoteModel?.enableGroups || remoteModel?.enable_groups || ['default'];
+        // 临时解决方案：不发送 group 参数，让服务器使用默认分组
+        // 因为服务器似乎没有正确处理 group 参数
+        const group = undefined;
+        
+        console.log('Remote model info:', {
+          modelId: modelStore.activeModel?.id,
+          modelName: remoteModelName,
+          availableGroups: JSON.stringify(availableGroups),
+          availableGroupsType: typeof availableGroups,
+          selectedGroup: group,
+        });
+        
+        // 列出所有可用的远程模型供调试
+        const allRemoteModels = modelStore.remoteModels.map(m => ({
+          id: m.id,
+          name: m.name,
+          groups: (m as any).enableGroups || (m as any).enable_groups || ['default']
+        }));
+        console.log('All available remote models:', allRemoteModels);
+        
         await remoteChatService.streamChatCompletion(
           messagesForRemoteRequest,
           systemMessages,
           {
             ...cleanCompletionParams,
             model: remoteModelName,
-            group: 'default',
+            group,
           },
           data => {
             // Capture time to first token on the first token received

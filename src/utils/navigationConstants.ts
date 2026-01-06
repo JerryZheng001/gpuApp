@@ -12,6 +12,7 @@ export const ROUTES = {
   SHARE_METERING: 'Share Metering',
   REVENUE_BILL: 'Revenue Bill',
   MY_DEVICES: 'My Devices',
+  RECHARGE: 'Recharge',
 
   // Dev tools route. Only available in debug mode.
   DEV_TOOLS: 'Dev Tools',
