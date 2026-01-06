@@ -104,10 +104,14 @@ class RemoteModelService {
       }
 
       // 转换为应用内的Model格式
-      return result.data.map((remoteModel: RemoteModelData, index: number) => ({
+      return result.data.map((remoteModel: RemoteModelData, index: number) => {
+        const enableGroups = remoteModel.enable_groups || ['default'];
+        const isFree = enableGroups.includes('free');
+
+        return {
         id: `remote_${remoteModel.model_name}`, // 使用模型名称作为稳定的ID
         author: remoteModel.provider?.[0] || 'GPUNexus',
-        name: remoteModel.model_name,
+        name: isFree ? `免费 ${remoteModel.model_name}` : remoteModel.model_name,
         type: remoteModel.model_parameters || 'llm',
         capabilities: [], // 可根据需要映射
         size: 0, // 远程模型不需要大小
@@ -141,10 +145,10 @@ class RemoteModelService {
         modelRatio: remoteModel.model_ratio,
         completionRatio: remoteModel.completion_ratio,
         quotaType: remoteModel.quota_type,
-        enableGroups: remoteModel.enable_groups || ['default'], // 添加可用分组信息
+        enableGroups, // 添加可用分组信息
         // API相关字段
         apiModel: remoteModel.model_name, // API使用的模型名称
-        defaultGroup: remoteModel.enable_groups?.[0] || 'default', // 默认分组
+        defaultGroup: enableGroups[0] || 'default', // 默认分组
         modelPrice: remoteModel.model_price,
         contextLength: remoteModel.context_length,
         inputModalities: remoteModel.input_modalities,
@@ -152,7 +156,7 @@ class RemoteModelService {
         series: remoteModel.series,
         provider: remoteModel.provider,
         logoUrl: remoteModel.logo_url,
-      } as Model & {
+        } as Model & {
         isRemote: boolean;
         remoteEndpoint: string;
         modelRatio: number;
@@ -168,7 +172,8 @@ class RemoteModelService {
         enableGroups: string[];
         apiModel: string;
         defaultGroup: string;
-      }));
+        };
+      });
     } catch (error) {
       console.error('获取远程模型失败:', error);
       throw this.handleError(error);

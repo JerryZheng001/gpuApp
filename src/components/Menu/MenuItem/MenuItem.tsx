@@ -17,7 +17,7 @@ import {createStyles} from './styles';
 
 export interface MenuItemProps
   extends Omit<PaperMenuItemProps, 'title' | 'titleStyle'> {
-  label: string;
+  label: React.ReactNode;
   labelStyle?: StyleProp<TextStyle>;
   danger?: boolean;
   style?: StyleProp<ViewStyle>;
@@ -155,7 +155,7 @@ export const MenuItem: React.FC<MenuItemProps> = ({
         {...menuItemProps}
         onPress={handlePress}
         disabled={isGroupLabel || menuItemProps.disabled}
-        title={label}
+        title={label as any}
         style={[
           styles.container,
           isSubmenuOpen && styles.activeParent,

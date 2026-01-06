@@ -251,9 +251,32 @@ export const ModelsScreen: React.FC = observer(() => {
       );
     } else {
       // Show remote models (HF + REMOTE)
-      return baseFilteredModels.filter(
+      const remote = baseFilteredModels.filter(
         model => model.origin === ModelOrigin.HF || model.origin === ModelOrigin.REMOTE,
       );
+
+      return remote
+        .slice()
+        .sort((a, b) => {
+          const freeA =
+            ((((a as any)?.enableGroups as string[] | undefined) || []).includes(
+              'free',
+            ) ||
+              a.name.startsWith('免费 '))
+              ? 0
+              : 1;
+          const freeB =
+            ((((b as any)?.enableGroups as string[] | undefined) || []).includes(
+              'free',
+            ) ||
+              b.name.startsWith('免费 '))
+              ? 0
+              : 1;
+          if (freeA !== freeB) {
+            return freeA - freeB;
+          }
+          return a.name.localeCompare(b.name);
+        });
     }
   }, [activeTab, baseFilteredModels]);
 

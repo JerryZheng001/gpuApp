@@ -223,9 +223,6 @@ export const useChatSession = (
       },
     };
     await addMessage(textMessage);
-
-    // RemoteChatService will build OpenAI messages from the `messages` argument and
-    // does NOT use completionParams.messages. Ensure the current user message is included.
     const messagesForRemoteRequest = [...currentMessages, textMessage];
 
     modelStore.setInferencing(true);
@@ -287,6 +284,7 @@ export const useChatSession = (
         abortController.current = new AbortController();
 
         const remoteModelName =
+          (modelStore.activeModel as any)?.apiModel ||
           modelStore.activeModel?.name ||
           String(modelStore.activeModel?.id || '').replace(/^remote_/, '');
         let streamedContent = '';

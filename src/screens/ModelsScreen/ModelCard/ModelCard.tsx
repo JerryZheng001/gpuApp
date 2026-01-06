@@ -128,6 +128,21 @@ export const ModelCard: React.FC<ModelCardProps> = observer(
     const isDownloading = modelStore.isDownloading(model.id);
     const isHfModel = model.origin === ModelOrigin.HF;
     const isRemoteModel = model.origin === ModelOrigin.REMOTE;
+    const isFreeRemoteModel =
+      isRemoteModel &&
+      ((((model as any)?.enableGroups as string[] | undefined) || []).includes(
+        'free',
+      ) ||
+        model.name.startsWith('免费 '));
+    const modelNameWithoutFreePrefix = model.name.replace(/^免费\s*/, '');
+    const freeBadgeStyle = {
+      backgroundColor: '#e8fef4',
+      color: theme.colors.primary,
+      paddingHorizontal: 6,
+      paddingVertical: 2,
+      borderRadius: 6,
+      overflow: 'hidden' as const,
+    };
 
     // Check projection model status for downloaded vision models
     const projectionModelStatus = modelStore.getProjectionModelStatus(model);
@@ -1029,7 +1044,15 @@ export const ModelCard: React.FC<ModelCardProps> = observer(
                   style={styles.compactModelName}
                   numberOfLines={1}
                   ellipsizeMode="middle">
-                  {model.name}
+                  {isFreeRemoteModel ? (
+                    <>
+                      <Text style={freeBadgeStyle}>免费</Text>
+                      {' '}
+                      {modelNameWithoutFreePrefix}
+                    </>
+                  ) : (
+                    model.name
+                  )}
                 </Text>
               </View>
               <View style={styles.headerRight}>
@@ -1128,7 +1151,15 @@ export const ModelCard: React.FC<ModelCardProps> = observer(
                     {l10n.models.modelCard.labels.modelName}
                   </Text>
                   <Text style={styles.fullModelNameText} selectable={true}>
-                    {model.name}
+                    {isFreeRemoteModel ? (
+                      <>
+                        <Text style={freeBadgeStyle}>免费</Text>
+                        {' '}
+                        {modelNameWithoutFreePrefix}
+                      </>
+                    ) : (
+                      model.name
+                    )}
                   </Text>
                 </View>
 

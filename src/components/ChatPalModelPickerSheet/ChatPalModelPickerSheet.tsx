@@ -226,9 +226,21 @@ export const ChatPalModelPickerSheet = observer(
     const renderModelItem = React.useCallback(
       (model: Model) => {
         const isActiveModel = model.id === modelStore.activeModelId;
+        const enableGroups = ((model as any)?.enableGroups as string[] | undefined) || [];
+        const isFreeRemoteModel =
+          enableGroups.includes('free') || model.name.startsWith('免费 ');
+        const modelNameWithoutFreePrefix = model.name.replace(/^免费\s*/, '');
         const modelSkills = getModelSkills(model)
           .flatMap(skill => skill.labelKey)
           .join(', ');
+        const freeBadgeStyle = {
+          backgroundColor: '#e8fef4',
+          color: theme.colors.primary,
+          paddingHorizontal: 6,
+          paddingVertical: 2,
+          borderRadius: 6,
+          overflow: 'hidden' as const,
+        };
         return (
           <Pressable
             key={model.id}
@@ -240,14 +252,22 @@ export const ChatPalModelPickerSheet = observer(
                   styles.itemTitle,
                   isActiveModel && styles.activeItemTitle,
                 ]}>
-                {model.name}
+                {isFreeRemoteModel ? (
+                  <>
+                    <Text style={freeBadgeStyle}>免费</Text>
+                    {' '}
+                    {modelNameWithoutFreePrefix}
+                  </>
+                ) : (
+                  model.name
+                )}
               </Text>
               {modelSkills && <ObservedSkillsDisplay model={model} />}
             </View>
           </Pressable>
         );
       },
-      [styles, handleModelSelect],
+      [styles, handleModelSelect, theme.colors.primary],
     );
 
     const getCapabilityText = React.useCallback(
@@ -332,7 +352,29 @@ export const ChatPalModelPickerSheet = observer(
           <BottomSheetScrollView
             contentContainerStyle={{paddingBottom: chatInputHeight + 66}}>
             {item.id === 'models'
-              ? modelStore.availableModels.map(renderModelItem)
+              ? modelStore.availableModels
+                  .slice()
+                  .sort((a, b) => {
+                    const freeA =
+                      ((((a as any)?.enableGroups as string[] | undefined) || []).includes(
+                        'free',
+                      ) ||
+                        a.name.startsWith('免费 '))
+                        ? 0
+                        : 1;
+                    const freeB =
+                      ((((b as any)?.enableGroups as string[] | undefined) || []).includes(
+                        'free',
+                      ) ||
+                        b.name.startsWith('免费 '))
+                        ? 0
+                        : 1;
+                    if (freeA !== freeB) {
+                      return freeA - freeB;
+                    }
+                    return a.name.localeCompare(b.name);
+                  })
+                  .map(renderModelItem)
               : [renderDisablePalItem(), ...palStore.pals.map(renderPalItem)]}
           </BottomSheetScrollView>
         </View>

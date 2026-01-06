@@ -2,7 +2,7 @@ import React, {useContext} from 'react';
 import {Alert, Keyboard, View} from 'react-native';
 
 import {observer} from 'mobx-react';
-import {IconButton, useTheme, Switch} from 'react-native-paper';
+import {IconButton, useTheme, Switch, Text} from 'react-native-paper';
 
 import {
   // ClockFastForwardIcon,
@@ -47,11 +47,41 @@ export const HeaderRight: React.FC = observer(() => {
   const closeMenu = () => setMenuVisible(false);
   const l10n = useContext(L10nContext);
 
-  const models = modelStore.availableModels;
+  const models = modelStore.availableModels
+    .slice()
+    .sort((a, b) => {
+      const freeA =
+        ((((a as any)?.enableGroups as string[] | undefined) || []).includes(
+          'free',
+        ) ||
+          a.name.startsWith('免费 '))
+          ? 0
+          : 1;
+      const freeB =
+        ((((b as any)?.enableGroups as string[] | undefined) || []).includes(
+          'free',
+        ) ||
+          b.name.startsWith('免费 '))
+          ? 0
+          : 1;
+      if (freeA !== freeB) {
+        return freeA - freeB;
+      }
+      return a.name.localeCompare(b.name);
+    });
   const activeModelId = modelStore.activeModelId;
   const session = chatSessionStore.sessions.find(
     s => s.id === chatSessionStore.activeSessionId,
   );
+
+  const freeBadgeStyle = {
+    backgroundColor: '#e8fef4',
+    color: theme.colors.primary,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 6,
+    overflow: 'hidden' as const,
+  };
 
   const onSelectModel = (model: Model) => {
     modelStore.initContext(model);
@@ -172,15 +202,35 @@ export const HeaderRight: React.FC = observer(() => {
         />
         <Menu.Item
           disabled={models.length === 0}
-          submenu={models.map(model => (
-            <Menu.Item
-              label={model.name}
-              onPress={() => onSelectModel(model)}
-              key={model.id}
-              selectable
-              selected={model.id === activeModelId}
-            />
-          ))}
+          submenu={models.map(model => {
+            const isFree =
+              ((((model as any)?.enableGroups as string[] | undefined) || []).includes(
+                'free',
+              ) ||
+                model.name.startsWith('免费 '));
+
+            const modelNameWithoutFreePrefix = model.name.replace(/^免费\s*/, '');
+
+            return (
+              <Menu.Item
+                label={
+                  isFree ? (
+                    <>
+                      <Text style={freeBadgeStyle}>免费</Text>
+                      {' '}
+                      {modelNameWithoutFreePrefix}
+                    </>
+                  ) : (
+                    model.name
+                  )
+                }
+                onPress={() => onSelectModel(model)}
+                key={model.id}
+                selectable
+                selected={model.id === activeModelId}
+              />
+            );
+          })}
           label={l10n.components.headerRight.model}
           leadingIcon={() => <GridIcon stroke={theme.colors.primary} />}
         />
