@@ -16,7 +16,10 @@ export type {
   MobileUserData,
   SendCodeResponse,
   MobileSignupResponse,
+  MobileLogoutResponse,
 } from './mobile-auth';
+
+export {mobileLogout} from './mobile-auth';
 
 // Device Services (设备绑定)
 export {deviceService} from './device';

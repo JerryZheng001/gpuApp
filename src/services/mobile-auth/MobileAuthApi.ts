@@ -58,6 +58,13 @@ export interface MobileSignupResponse {
   message: string;
   data?: MobileUserData;
   session?: string; // 从响应头中提取的 session
+  token?: string; // 登录接口返回的 token（如有）
+}
+
+export interface MobileLogoutResponse {
+  success: boolean;
+  message: string;
+  code?: number;
 }
 
 /**
@@ -104,6 +111,52 @@ export async function sendVerifyCode(
       success: false,
       message:
         error instanceof Error ? error.message : '网络请求失败，请检查网络连接',
+    };
+  }
+}
+
+export async function mobileLogout(
+  session: string,
+  userId: number | string,
+  token: string,
+): Promise<MobileLogoutResponse> {
+  try {
+    const url = `${AUTH_API_BASE_URL}/api/user/mobile/logout`;
+    const requestBody = {token};
+
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Cookie: 'session=' + session,
+        'New-Api-User': String(userId),
+      },
+      body: JSON.stringify(requestBody),
+    });
+
+    const data = await response
+      .json()
+      .catch(() => ({success: response.ok, message: response.statusText}));
+
+    return {
+      ...(typeof data === 'object' && data ? data : {}),
+      success:
+        typeof (data as any)?.success === 'boolean'
+          ? (data as any).success
+          : response.ok,
+      message:
+        typeof (data as any)?.message === 'string'
+          ? (data as any).message
+          : response.ok
+            ? 'ok'
+            : response.statusText,
+      code:
+        typeof (data as any)?.code === 'number' ? (data as any).code : undefined,
+    };
+  } catch (error) {
+    return {
+      success: false,
+      message: error instanceof Error ? error.message : '网络请求失败，请检查网络连接',
     };
   }
 }
@@ -199,11 +252,16 @@ export async function mobileSignup(
 
     const data = await response.json();
     console.log('手机号登录/注册响应数据:', data);
+
+    // 尝试从响应体中提取 token（后端字段命名可能不统一）
+    const extractedToken: string | undefined =
+      (data as any)?.token || (data as any)?.data?.token;
     
     // 将 session 添加到响应中
     return {
       ...data,
       session: extractedSession,
+      token: extractedToken,
     };
   } catch (error) {
     console.error('手机号登录/注册失败:', error);

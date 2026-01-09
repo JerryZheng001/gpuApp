@@ -19,10 +19,54 @@ interface ExtendedCompletionParams extends CompletionParams {
   frequency_penalty?: number;
   presence_penalty?: number;
   group?: string; // 添加group字段
+  
 }
 
-// 固定的Bearer Token（根据要求写死）
-const FIXED_BEARER_TOKEN = 'Bearer a5f6036890304096aef42f0aa3563cf20db920f8bfa12f93';
+const HARDCODED_REMOTE_CHAT_TOKEN =
+  'Bearer 3429c7516dad7ac3bb3a6494bdc56b0dc7476075ca309924';
+
+function getBearerTokenOrNull(): string | null {
+  return HARDCODED_REMOTE_CHAT_TOKEN;
+}
+
+function requireBearerToken(): string {
+  const bearer = getBearerTokenOrNull();
+  console.log('bearer', mobileAuthService.token,HARDCODED_REMOTE_CHAT_TOKEN);
+  if (!bearer) {
+    throw new Error('认证信息缺失，请先登录');
+  }
+  return bearer;
+}
+
+function formatApiError(status: number, errorText: string): string {
+
+  try {
+    const parsed = JSON.parse(errorText);
+    const message: string | undefined =
+      (parsed as any)?.error?.message || (parsed as any)?.message;
+    const type: string | undefined = (parsed as any)?.error?.type || (parsed as any)?.type;
+
+    if (typeof message === 'string') {
+      if (status === 401 && type === 'gpunexus_token_error') {
+        if (message.includes('RemainQuota = 0')) {
+          return '该账号额度已用尽，请充值或更换账号';
+        }
+        return '令牌不可用或额度不足，请重新登录或更换账号';
+      }
+      if (status === 401) {
+        return '认证失败，请重新登录';
+      }
+      if (status === 429) {
+        return '请求过于频繁，请稍后重试';
+      }
+      return message;
+    }
+  } catch {
+    // ignore JSON parse errors
+  }
+
+  return errorText || '请求失败';
+}
 
 // 流式响应回调类型
 export interface StreamingCallback {
@@ -43,13 +87,14 @@ class RemoteChatService {
   constructor() {
     this.baseURL = Config.REMOTE_API_BASE_URL || 'https://api.gpunexus.com';
     
-    // 初始化OpenAI客户端，使用固定的Bearer Token
+    // 初始化OpenAI客户端，使用动态 Token
+    const bearer = getBearerTokenOrNull();
     this.openai = new OpenAI({
-      apiKey: FIXED_BEARER_TOKEN.replace('Bearer ', ''), // 移除Bearer前缀，OpenAI库会自动添加
+      apiKey: (bearer ?? '').replace('Bearer ', ''), // 移除Bearer前缀，OpenAI库会自动添加
       baseURL: `${this.baseURL}`,
       dangerouslyAllowBrowser: true, // React Native环境需要
       defaultHeaders: {
-        'Authorization': FIXED_BEARER_TOKEN,
+        ...(bearer ? {Authorization: bearer} : {}),
       },
     });
   }
@@ -58,7 +103,8 @@ class RemoteChatService {
    * 更新认证token
    */
   updateAuthToken() {
-    this.openai.apiKey = mobileAuthService.session || 'default-key';
+    const bearer = requireBearerToken();
+    this.openai.apiKey = bearer.replace('Bearer ', '');
   }
 
   /**
@@ -224,7 +270,8 @@ class RemoteChatService {
 
         const errorText = xhr.responseText || '';
         cleanup();
-        reject(new Error(`API错误 (${status}): ${errorText}`));
+        const formatted = formatApiError(status, errorText);
+        reject(new Error(`API错误 (${status}): ${formatted}`));
       };
 
       xhr.onprogress = () => {
@@ -250,7 +297,7 @@ class RemoteChatService {
       xhr.setRequestHeader('Content-Type', 'application/json');
       xhr.setRequestHeader('Accept', 'text/event-stream');
       xhr.setRequestHeader('New-Api-User', String(mobileAuthService.user?.id ?? ''));
-      xhr.setRequestHeader('Authorization', FIXED_BEARER_TOKEN);
+      xhr.setRequestHeader('Authorization', requireBearerToken());
 
       console.log('XHR sending request body:', body);
       xhr.send(body);
@@ -314,7 +361,7 @@ class RemoteChatService {
         headers: {
           'Content-Type': 'application/json',
           'New-Api-User': String(mobileAuthService.user?.id ?? ''),
-          'Authorization': FIXED_BEARER_TOKEN,
+          Authorization: requireBearerToken(),
         },
         body: JSON.stringify(openAIParams),
         signal,
@@ -322,8 +369,9 @@ class RemoteChatService {
 
       if (!response.ok) {
         const errorText = await response.text();
-        console.error('Remote chat API error:', response.status, errorText);
-        throw new Error(`API错误 (${response.status}): ${errorText}`);
+        const formatted = formatApiError(response.status, errorText);
+        console.error('Remote chat API error:', response.status, formatted);
+        throw new Error(`API错误 (${response.status}): ${formatted}`);
       }
 
       // 处理流式响应
@@ -435,15 +483,16 @@ class RemoteChatService {
         headers: {
           'Content-Type': 'application/json',
           'New-Api-User': String(mobileAuthService.user?.id ?? ''),
-          'Authorization': FIXED_BEARER_TOKEN,
+          Authorization: requireBearerToken(),
         },
         body: JSON.stringify(openAIParams),
       });
 
       if (!response.ok) {
         const errorText = await response.text();
-        console.error('Remote chat API error:', response.status, errorText);
-        throw new Error(`API错误 (${response.status}): ${errorText}`);
+        const formatted = formatApiError(response.status, errorText);
+        console.error('Remote chat API error:', response.status, formatted);
+        throw new Error(`API错误 (${response.status}): ${formatted}`);
       }
 
       const data = await response.json();

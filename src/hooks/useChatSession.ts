@@ -8,6 +8,7 @@ import {randId} from '../utils';
 import {L10nContext} from '../utils';
 import {chatSessionStore, modelStore, palStore, uiStore} from '../store';
 import {remoteChatService} from '../services/RemoteChatService';
+import {mobileAuthService} from '../services/mobile-auth';
 
 import {MessageType, User, ModelOrigin} from '../utils/types';
 import {createMultimodalWarning} from '../utils/errors';
@@ -77,7 +78,9 @@ const prepareCompletion = async ({
 
   // Convert chat session messages to llama.rn format
   let chatMessages = convertToChatMessages(
-    currentMessages.filter(msg => msg.type !== 'image'),
+    currentMessages.filter(
+      msg => msg.type !== 'image' && !(msg as any)?.metadata?.system,
+    ),
     isMultimodalEnabled,
   );
 
@@ -194,6 +197,11 @@ export const useChatSession = (
       return;
     }
 
+    if (isRemoteModel && !mobileAuthService.token) {
+      await addSystemMessage('认证信息缺失，请先登录');
+      return;
+    }
+
     // Extract imageUris from the message object
     const imageUris = message.imageUris;
     // Check if we have images in the current message
@@ -223,7 +231,13 @@ export const useChatSession = (
       },
     };
     await addMessage(textMessage);
-    const messagesForRemoteRequest = [...currentMessages, textMessage];
+
+    const messagesForRemoteRequest = [
+      ...currentMessages.filter(
+        m => m.type !== 'image' && !(m as any)?.metadata?.system,
+      ),
+      textMessage,
+    ];
 
     modelStore.setInferencing(true);
     modelStore.setIsStreaming(false);

@@ -8,9 +8,15 @@ import Config from 'react-native-config';
 import { Model, ModelOrigin } from '../utils/types';
 import {chatTemplates} from '../utils/chat';
 import {defaultCompletionParams} from '../utils/completionSettingsVersions';
+import {mobileAuthService} from './mobile-auth';
 
-// 固定的Bearer Token（根据要求写死）
-const FIXED_BEARER_TOKEN = 'Bearer a5f6036890304096aef42f0aa3563cf20db920f8bfa12f93';
+function getBearerTokenOrNull(): string | null {
+  const token = mobileAuthService.token;
+  if (!token) {
+    return null;
+  }
+  return `Bearer ${token}`;
+}
 
 // 远程模型接口定义（基于gpunexus-web的/api/v1/pricing端点）
 interface RemoteModelData {
@@ -53,13 +59,18 @@ interface RemoteModelsResponse {
 class RemoteModelService {
   private openai: OpenAI;
   private baseURL: string;
+  private remoteModelsCache: Model[] | null = null;
+  private remoteModelsCacheAtMs: number | null = null;
+  private remoteModelsInFlight: Promise<Model[]> | null = null;
+  private readonly remoteModelsCacheTtlMs = 60_000;
   
   constructor() {
     this.baseURL = Config.REMOTE_API_BASE_URL || 'https://api.gpunexus.com';
     
     // 初始化OpenAI客户端
+    const bearer = getBearerTokenOrNull();
     this.openai = new OpenAI({
-      apiKey: FIXED_BEARER_TOKEN.replace('Bearer ', ''),
+      apiKey: (bearer ?? '').replace('Bearer ', ''),
       baseURL: `${this.baseURL}/v1`,
       dangerouslyAllowBrowser: true, // React Native环境需要
     });
@@ -69,18 +80,51 @@ class RemoteModelService {
    * 获取远程模型列表
    */
   async getRemoteModels(): Promise<Model[]> {
+    const now = Date.now();
+    if (
+      this.remoteModelsCache &&
+      this.remoteModelsCacheAtMs != null &&
+      now - this.remoteModelsCacheAtMs < this.remoteModelsCacheTtlMs
+    ) {
+      return this.remoteModelsCache;
+    }
+
+    if (this.remoteModelsInFlight) {
+      return this.remoteModelsInFlight;
+    }
+
+    this.remoteModelsInFlight = this.fetchRemoteModelsInternal();
     try {
+      const models = await this.remoteModelsInFlight;
+      this.remoteModelsCache = models;
+      this.remoteModelsCacheAtMs = Date.now();
+      return models;
+    } finally {
+      this.remoteModelsInFlight = null;
+    }
+  }
+
+  private async fetchRemoteModelsInternal(): Promise<Model[]> {
+    try {
+      // 使用fetch直接请求API
+      console.log('开始获取远程模型列表');
+      console.log('使用baseURL:', this.baseURL);
       // demo/gpunexus-web 中通过后端 `${WURIGEN_APP_URL}/api/v1/pricing` 获取列表
       // 这里兼容两种部署：优先 /api/v1/pricing，若 404 再回退 /v1/pricing
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 10000); // 10秒超时
 
       const tryFetch = async (url: string) => {
+        const bearer = getBearerTokenOrNull();
+        console.log('远程模型列表请求:', {
+          url,
+          hasAuth: !!bearer,
+        });
         return fetch(url, {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': FIXED_BEARER_TOKEN,
+            ...(bearer ? {Authorization: bearer} : {}),
           },
           signal: controller.signal,
         });
@@ -94,6 +138,19 @@ class RemoteModelService {
       clearTimeout(timeoutId);
 
       if (!response.ok) {
+        if (response.status === 429) {
+          const retryAfter = response.headers.get('retry-after');
+          if (this.remoteModelsCache && this.remoteModelsCacheAtMs != null) {
+            console.warn('远程模型列表请求 429，返回缓存数据', {
+              retryAfter,
+              cacheAgeMs: Date.now() - this.remoteModelsCacheAtMs,
+            });
+            return this.remoteModelsCache;
+          }
+          throw new Error(
+            `请求过于频繁（429）${retryAfter ? `，请在 ${retryAfter}s 后重试` : ''}`,
+          );
+        }
         throw new Error(`HTTP error! status: ${response.status}`);
       }
 
@@ -195,6 +252,20 @@ class RemoteModelService {
    * 统一错误处理
    */
   private handleError(error: any): Error {
+    // fetch 在 RN 中通常抛 TypeError('Network request failed') 或 DOMException/AbortError
+    const msg = typeof error?.message === 'string' ? error.message : '';
+    const name = typeof error?.name === 'string' ? error.name : '';
+
+    if (name === 'AbortError') {
+      return new Error('网络请求超时，请稍后重试');
+    }
+
+    if (error instanceof TypeError && msg.toLowerCase().includes('network request failed')) {
+      return new Error(
+        `网络请求失败（可能是域名无法访问、DNS 问题或 HTTPS 证书握手失败）。baseURL=${this.baseURL}`,
+      );
+    }
+
     if (error.response) {
       // API响应错误
       const status = error.response.status;

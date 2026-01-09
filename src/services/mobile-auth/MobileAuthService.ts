@@ -28,6 +28,7 @@ export interface MobileAuthState {
 class MobileAuthService {
   user: MobileUserData | null = null;
   session: string | null = null; // 保存登录后的 session
+  token: string | null = null; // 保存登录后的 token（用于退出登录接口）
   isLoading: boolean = false;
   isAuthenticated: boolean = false;
   error: string | null = null;
@@ -42,12 +43,13 @@ class MobileAuthService {
     makeAutoObservable(this);
     makePersistable(this, {
       name: 'MobileAuthService',
-      properties: ['user', 'isAuthenticated', 'session'],
+      properties: ['user', 'isAuthenticated', 'session', 'token'],
       storage: AsyncStorage,
     }).then(store => {
       this.persistStore = store;
       console.log('MobileAuthService: 持久化初始化完成');
       console.log('恢复的 session:', this.session);
+      console.log('恢复的 token:', this.token);
       console.log('恢复的 user:', this.user);
       console.log('恢复的 isAuthenticated:', this.isAuthenticated);
     });
@@ -141,11 +143,6 @@ class MobileAuthService {
           if (response.session) {
             this.session = response.session;
             console.log('✅ Session 已保存到内存:', response.session);
-            console.log('当前 MobileAuthService 状态:', {
-              session: this.session,
-              user: this.user,
-              isAuthenticated: this.isAuthenticated,
-            });
             
             // makePersistable 会自动保存，但我们可以验证一下
             // 延迟一小段时间后验证持久化是否成功
@@ -156,6 +153,7 @@ class MobileAuthService {
                   const parsed = JSON.parse(stored);
                   console.log('验证持久化的数据:', {
                     session: parsed.session,
+                    token: parsed.token,
                     user: parsed.user,
                     isAuthenticated: parsed.isAuthenticated,
                   });
@@ -163,6 +161,14 @@ class MobileAuthService {
                     console.error('❌ Session 持久化不一致！内存:', this.session, '存储:', parsed.session);
                   } else {
                     console.log('✅ Session 持久化验证成功');
+                  }
+
+                  const memToken = this.token;
+                  const storedToken = parsed.token;
+                  if ((storedToken ?? null) !== (memToken ?? null)) {
+                    console.error('❌ Token 持久化不一致！内存:', memToken, '存储:', storedToken);
+                  } else {
+                    console.log('✅ Token 持久化验证成功');
                   }
                 } else {
                   console.warn('⚠️ 未找到持久化数据');
@@ -174,6 +180,20 @@ class MobileAuthService {
           } else {
             console.warn('⚠️ 未获取到 session');
           }
+
+          // 保存 token（退出登录/远程聊天鉴权需要）
+          this.token = response.token ?? null;
+          if (this.token) {
+            console.log('✅ Token 已保存到内存:', `${this.token.slice(0, 6)}***`);
+          } else {
+            console.warn('⚠️ 未获取到 token（远程聊天/退出登录接口可能不可用），已清空旧 token');
+          }
+          console.log('当前 MobileAuthService 状态:', {
+            session: this.session,
+            token: this.token ? `${this.token.slice(0, 6)}***` : null,
+            user: this.user,
+            isAuthenticated: this.isAuthenticated,
+          });
           console.log('登录成功:', response.data);
           
           // 登录成功后，尝试恢复设备信息
@@ -216,6 +236,7 @@ class MobileAuthService {
     runInAction(() => {
       this.user = null;
       this.session = null; // 清除 session
+      this.token = null; // 清除 token
       this.isAuthenticated = false;
       this.error = null;
       this.codeSent = false;
