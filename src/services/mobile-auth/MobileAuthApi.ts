@@ -58,6 +58,7 @@ export interface MobileSignupResponse {
   message: string;
   data?: MobileUserData;
   session?: string; // 从响应头中提取的 session
+  token?: string;
 }
 
 /**

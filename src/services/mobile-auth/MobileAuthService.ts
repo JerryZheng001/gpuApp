@@ -28,6 +28,7 @@ export interface MobileAuthState {
 class MobileAuthService {
   user: MobileUserData | null = null;
   session: string | null = null; // 保存登录后的 session
+  token: string | null = null;
   isLoading: boolean = false;
   isAuthenticated: boolean = false;
   error: string | null = null;
@@ -42,12 +43,13 @@ class MobileAuthService {
     makeAutoObservable(this);
     makePersistable(this, {
       name: 'MobileAuthService',
-      properties: ['user', 'isAuthenticated', 'session'],
+      properties: ['user', 'isAuthenticated', 'session', 'token'],
       storage: AsyncStorage,
     }).then(store => {
       this.persistStore = store;
       console.log('MobileAuthService: 持久化初始化完成');
       console.log('恢复的 session:', this.session);
+      console.log('恢复的 token:', this.token);
       console.log('恢复的 user:', this.user);
       console.log('恢复的 isAuthenticated:', this.isAuthenticated);
     });
@@ -137,12 +139,16 @@ class MobileAuthService {
         if (response.success && response.data) {
           this.user = response.data;
           this.isAuthenticated = true;
+          if (response.token) {
+            this.token = response.token;
+          }
           // 保存 session
           if (response.session) {
             this.session = response.session;
             console.log('✅ Session 已保存到内存:', response.session);
             console.log('当前 MobileAuthService 状态:', {
               session: this.session,
+              token: this.token,
               user: this.user,
               isAuthenticated: this.isAuthenticated,
             });
@@ -156,6 +162,7 @@ class MobileAuthService {
                   const parsed = JSON.parse(stored);
                   console.log('验证持久化的数据:', {
                     session: parsed.session,
+                    token: parsed.token,
                     user: parsed.user,
                     isAuthenticated: parsed.isAuthenticated,
                   });
@@ -216,6 +223,7 @@ class MobileAuthService {
     runInAction(() => {
       this.user = null;
       this.session = null; // 清除 session
+      this.token = null;
       this.isAuthenticated = false;
       this.error = null;
       this.codeSent = false;

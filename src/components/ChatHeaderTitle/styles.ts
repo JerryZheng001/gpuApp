@@ -14,10 +14,18 @@ export const styles = StyleSheet.create({
     flexShrink: 1,
     maxWidth: '100%',
   },
+  modelSelectorButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    flexShrink: 1,
+    minWidth: 0,
+    maxWidth: '86%',
+  },
   modelName: {
     flexShrink: 1,
     minWidth: 0,
-    maxWidth: '75%',
+    maxWidth: '86%',
   },
   shareContainer: {
     flexDirection: 'row',

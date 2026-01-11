@@ -8,9 +8,11 @@ import Config from 'react-native-config';
 import { Model, ModelOrigin } from '../utils/types';
 import {chatTemplates} from '../utils/chat';
 import {defaultCompletionParams} from '../utils/completionSettingsVersions';
+import {mobileAuthService} from './mobile-auth';
 
 // 固定的Bearer Token（根据要求写死）
-const FIXED_BEARER_TOKEN = 'Bearer a5f6036890304096aef42f0aa3563cf20db920f8bfa12f93';
+const FIXED_BEARER_TOKEN = 'Bearer sWmEu0iGFcauLAtnNtuthk0o6O7XudoIvEzi4jRIkncvfkFu';
+void FIXED_BEARER_TOKEN;
 
 // 远程模型接口定义（基于gpunexus-web的/api/v1/pricing端点）
 interface RemoteModelData {
@@ -53,13 +55,34 @@ interface RemoteModelsResponse {
 class RemoteModelService {
   private openai: OpenAI;
   private baseURL: string;
+
+  private maskToken(token: string): string {
+    if (!token) return '';
+    if (token.length <= 10) return `${token.slice(0, 2)}***${token.slice(-2)}`;
+    return `${token.slice(0, 4)}***${token.slice(-4)}`;
+  }
+
+  private getAuthorizationHeader(): string {
+    const token = mobileAuthService.token;
+    if (!token) {
+      throw new Error('未登录或缺少token，请先登录');
+    }
+    return token.startsWith('Bearer ') ? token : `Bearer ${token}`;
+  }
   
   constructor() {
     this.baseURL = Config.REMOTE_API_BASE_URL || 'https://api.gpunexus.com';
     
     // 初始化OpenAI客户端
+    const token = mobileAuthService.token;
+    const apiKey = token ? (token.startsWith('Bearer ') ? token.slice(7) : token) : 'default-key';
+    console.log('RemoteModelService apiKey set:', {
+      present: apiKey.length > 0,
+      length: apiKey.length,
+      masked: this.maskToken(apiKey),
+    });
     this.openai = new OpenAI({
-      apiKey: FIXED_BEARER_TOKEN.replace('Bearer ', ''),
+      apiKey,
       baseURL: `${this.baseURL}/v1`,
       dangerouslyAllowBrowser: true, // React Native环境需要
     });
@@ -75,12 +98,14 @@ class RemoteModelService {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 10000); // 10秒超时
 
+      const authHeader = this.getAuthorizationHeader();
+
       const tryFetch = async (url: string) => {
         return fetch(url, {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': FIXED_BEARER_TOKEN,
+            'Authorization': authHeader,
           },
           signal: controller.signal,
         });

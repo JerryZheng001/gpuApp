@@ -22,7 +22,9 @@ interface ExtendedCompletionParams extends CompletionParams {
 }
 
 // 固定的Bearer Token（根据要求写死）
-const FIXED_BEARER_TOKEN = 'Bearer a5f6036890304096aef42f0aa3563cf20db920f8bfa12f93';
+// const FIXED_BEARER_TOKEN = 'Bearer a5f6036890304096aef42f0aa3563cf20db920f8bfa12f93';
+const FIXED_BEARER_TOKEN = 'Bearer sWmEu0iGFcauLAtnNtuthk0o6O7XudoIvEzi4jRIkncvfkFu';
+void FIXED_BEARER_TOKEN;
 
 // 流式响应回调类型
 export interface StreamingCallback {
@@ -39,18 +41,36 @@ type ChatMessage = OpenAI.Chat.Completions.ChatCompletionMessageParam;
 class RemoteChatService {
   private openai: OpenAI;
   private baseURL: string;
+
+  private maskToken(token: string): string {
+    if (!token) return '';
+    if (token.length <= 10) return `${token.slice(0, 2)}***${token.slice(-2)}`;
+    return `${token.slice(0, 4)}***${token.slice(-4)}`;
+  }
+
+  private getAuthorizationHeader(): string {
+    const token = mobileAuthService.token;
+    if (!token) {
+      throw new Error('未登录或缺少token，请先登录');
+    }
+    return token.startsWith('Bearer ') ? token : `Bearer ${token}`;
+  }
   
   constructor() {
     this.baseURL = Config.REMOTE_API_BASE_URL || 'https://api.gpunexus.com';
     
-    // 初始化OpenAI客户端，使用固定的Bearer Token
+    // 初始化OpenAI客户端。token 恢复是异步的，所以这里用占位 key，真正请求时再取 token。
+    const token = mobileAuthService.token;
+    const apiKey = token ? (token.startsWith('Bearer ') ? token.slice(7) : token) : 'default-key';
+    console.log('RemoteChatService apiKey set:', {
+      present: apiKey.length > 0,
+      length: apiKey.length,
+      masked: this.maskToken(apiKey),
+    });
     this.openai = new OpenAI({
-      apiKey: FIXED_BEARER_TOKEN.replace('Bearer ', ''), // 移除Bearer前缀，OpenAI库会自动添加
+      apiKey, // 移除Bearer前缀，OpenAI库会自动添加
       baseURL: `${this.baseURL}`,
       dangerouslyAllowBrowser: true, // React Native环境需要
-      defaultHeaders: {
-        'Authorization': FIXED_BEARER_TOKEN,
-      },
     });
   }
 
@@ -58,7 +78,10 @@ class RemoteChatService {
    * 更新认证token
    */
   updateAuthToken() {
-    this.openai.apiKey = mobileAuthService.session || 'default-key';
+    const token = mobileAuthService.token;
+    this.openai.apiKey = token
+      ? (token.startsWith('Bearer ') ? token.slice(7) : token)
+      : 'default-key';
   }
 
   /**
@@ -250,7 +273,7 @@ class RemoteChatService {
       xhr.setRequestHeader('Content-Type', 'application/json');
       xhr.setRequestHeader('Accept', 'text/event-stream');
       xhr.setRequestHeader('New-Api-User', String(mobileAuthService.user?.id ?? ''));
-      xhr.setRequestHeader('Authorization', FIXED_BEARER_TOKEN);
+      xhr.setRequestHeader('Authorization', this.getAuthorizationHeader());
 
       console.log('XHR sending request body:', body);
       xhr.send(body);
@@ -309,12 +332,13 @@ class RemoteChatService {
       }
 
       // 直接使用fetch调用API，参考demo的实现
+      const authHeader = this.getAuthorizationHeader();
       const response = await fetch(`${this.baseURL}/v1/chat/completions`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'New-Api-User': String(mobileAuthService.user?.id ?? ''),
-          'Authorization': FIXED_BEARER_TOKEN,
+          'Authorization': authHeader,
         },
         body: JSON.stringify(openAIParams),
         signal,
@@ -430,12 +454,13 @@ class RemoteChatService {
       });
 
       // 直接使用fetch调用API
+      const authHeader = this.getAuthorizationHeader();
       const response = await fetch(`${this.baseURL}/v1/chat/completions`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'New-Api-User': String(mobileAuthService.user?.id ?? ''),
-          'Authorization': FIXED_BEARER_TOKEN,
+          'Authorization': authHeader,
         },
         body: JSON.stringify(openAIParams),
       });
