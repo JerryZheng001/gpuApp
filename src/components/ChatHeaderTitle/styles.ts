@@ -20,12 +20,12 @@ export const styles = StyleSheet.create({
     gap: 4,
     flexShrink: 1,
     minWidth: 0,
-    maxWidth: '86%',
+    maxWidth: '80%',
   },
   modelName: {
     flexShrink: 1,
     minWidth: 0,
-    maxWidth: '86%',
+    maxWidth: '80%',
   },
   shareContainer: {
     flexDirection: 'row',
