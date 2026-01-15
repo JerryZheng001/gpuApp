@@ -228,7 +228,9 @@ export const ChatPalModelPickerSheet = observer(
         const isActiveModel = model.id === modelStore.activeModelId;
         const enableGroups = ((model as any)?.enableGroups as string[] | undefined) || [];
         const isFreeRemoteModel =
-          enableGroups.includes('free') || model.name.startsWith('免费 ');
+          typeof model.currentClientIsFree === 'boolean'
+            ? model.currentClientIsFree
+            : enableGroups.includes('free') || model.name.startsWith('免费 ');
         const modelNameWithoutFreePrefix = model.name.replace(/^免费\s*/, '');
         const modelSkills = getModelSkills(model)
           .flatMap(skill => skill.labelKey)

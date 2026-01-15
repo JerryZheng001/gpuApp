@@ -57,7 +57,7 @@ import {
 } from '../../utils';
 import {checkGpuSupport} from '../../utils/deviceCapabilities';
 import {exportLegacyChatSessions} from '../../utils/exportUtils';
-import {mobileAuthService, deviceService, mobileLogout} from '../../services';
+import {mobileAuthService, deviceService} from '../../services';
 import GpufModule from '../../services/GpufModule';
 import {getDeviceOptions, DeviceOption} from '../../utils/deviceSelection';
 import {
@@ -1252,27 +1252,6 @@ export const SettingsScreen: React.FC = observer(() => {
                           style: 'destructive',
                           onPress: async () => {
                             try {
-                              const session = mobileAuthService.session;
-                              const userId = mobileAuthService.user?.id;
-                              const token = mobileAuthService.token;
-
-                              if (session && userId != null && token) {
-                                try {
-                                  await mobileLogout(session, userId, token);
-                                } catch (error) {
-                                  console.error('退出登录：调用 logout 接口失败:', error);
-                                }
-                              } else {
-                                console.warn(
-                                  '退出登录：缺少 session/userId/token，跳过 logout 接口调用',
-                                  {
-                                    hasSession: !!session,
-                                    hasUserId: userId != null,
-                                    hasToken: !!token,
-                                  },
-                                );
-                              }
-
                               // 先停止分享
                               if (modelStore.sharedModelId) {
                                 console.log('退出登录：停止分享...');
@@ -1286,7 +1265,7 @@ export const SettingsScreen: React.FC = observer(() => {
                               console.error('停止分享或清空设备数据失败:', error);
                             }
                             // 退出登录
-                            mobileAuthService.signOut();
+                            await mobileAuthService.signOut();
                             Alert.alert('提示', '已退出登录');
                           },
                         },

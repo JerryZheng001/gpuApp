@@ -35,9 +35,10 @@ export const ProfileSheet: React.FC<ProfileSheetProps> = observer(
           {
             text: l10n.palsScreen.signOut,
             style: 'destructive',
-            onPress: () => {
+            onPress: async () => {
               try {
-                mobileAuthService.signOut();
+                await mobileAuthService.signOut();
+                Alert.alert('提示', '已退出登录');
                 onClose();
               } catch (error) {
                 console.error('Error signing out:', error);

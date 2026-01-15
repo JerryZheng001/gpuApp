@@ -368,6 +368,8 @@ export interface Model {
   // Thinking capabilities
   supportsThinking?: boolean; // Whether this model supports thinking/reasoning mode
 
+  currentClientIsFree?: boolean;
+
   defaultChatTemplate: ChatTemplateConfig;
   chatTemplate: ChatTemplateConfig;
   defaultStopWords: CompletionParams['stop'];

@@ -108,4 +108,3 @@ class RemoteWorkerService {
 }
 
 export const remoteWorkerService = RemoteWorkerService.getInstance();
-

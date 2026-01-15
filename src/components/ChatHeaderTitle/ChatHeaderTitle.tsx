@@ -9,10 +9,11 @@ import {chatSessionStore, modelStore} from '../../store';
 import {L10nContext} from '../../utils';
 import {mobileAuthService, deviceService, remoteWorkerService} from '../../services';
 import GpufModule from '../../services/GpufModule';
-import {ModelOrigin} from '../../utils/types';
-import {ShareIcon} from '../../assets/icons';
+import {Model, ModelOrigin} from '../../utils/types';
+import {ChevronDownIcon, ShareIcon} from '../../assets/icons';
 import {useTheme} from '../../hooks';
 import Config from 'react-native-config';
+import {Menu} from '../Menu';
 
 export const ChatHeaderTitle: React.FC = observer(() => {
   const l10n = useContext(L10nContext);
@@ -41,9 +42,66 @@ export const ChatHeaderTitle: React.FC = observer(() => {
   const activeModel = modelStore.activeModel;
   const [isSharing, setIsSharing] = useState(false);
   const [switchValue, setSwitchValue] = useState(false);
+  const [modelMenuVisible, setModelMenuVisible] = useState(false);
 
-  const isShared = activeModel?.id && modelStore.sharedModelId === activeModel.id;
-  const canShare = activeModel?.isDownloaded && mobileAuthService.isAuthenticated && deviceService.isDeviceBound;
+  const openModelMenu = useCallback(() => setModelMenuVisible(true), []);
+  const closeModelMenu = useCallback(() => setModelMenuVisible(false), []);
+
+  const isShared = !!(activeModel?.id && modelStore.sharedModelId === activeModel.id);
+  const isRemoteModel = activeModel?.origin === ModelOrigin.REMOTE;
+  const canShare =
+    !!activeModel?.isDownloaded &&
+    !isRemoteModel &&
+    mobileAuthService.isAuthenticated &&
+    deviceService.isDeviceBound;
+  const disabledColor =
+    (theme.colors as any).onSurfaceDisabled || theme.colors.onSurfaceVariant;
+
+  const freeBadgeStyle = {
+    backgroundColor: '#e8fef4',
+    color: theme.colors.primary,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 6,
+    overflow: 'hidden' as const,
+  };
+
+  const models = modelStore.availableModels
+    .slice()
+    .sort((a, b) => {
+      const isFreeA =
+        typeof (a as any)?.currentClientIsFree === 'boolean'
+          ? (a as any).currentClientIsFree
+          : ((((a as any)?.enableGroups as string[] | undefined) || []).includes(
+              'free',
+            ) ||
+              a.name.startsWith('免费 '));
+      const isFreeB =
+        typeof (b as any)?.currentClientIsFree === 'boolean'
+          ? (b as any).currentClientIsFree
+          : ((((b as any)?.enableGroups as string[] | undefined) || []).includes(
+              'free',
+            ) ||
+              b.name.startsWith('免费 '));
+
+      const freeA = isFreeA ? 0 : 1;
+      const freeB = isFreeB ? 0 : 1;
+      if (freeA !== freeB) {
+        return freeA - freeB;
+      }
+      return a.name.localeCompare(b.name);
+    });
+
+  const localModels = models.filter(m => m.origin !== ModelOrigin.REMOTE);
+  const remoteModels = models.filter(m => m.origin === ModelOrigin.REMOTE);
+
+  const onSelectModel = useCallback(
+    (model: Model) => {
+      modelStore.initContext(model);
+      closeModelMenu();
+    },
+    [closeModelMenu],
+  );
 
   // 同步 isShared 状态到 switchValue
   useEffect(() => {
@@ -383,22 +441,118 @@ export const ChatHeaderTitle: React.FC = observer(() => {
       </Text>
       {activeModel?.name && (
         <View style={styles.modelRow}>
-          <Text numberOfLines={1} variant="bodySmall" style={styles.modelName}>
-            {activeModel.name}
-          </Text>
-          {canShare && (
+          <Menu
+            visible={modelMenuVisible}
+            onDismiss={closeModelMenu}
+            selectable
+            anchorPosition="bottom"
+            anchor={
+              <TouchableOpacity
+                onPress={openModelMenu}
+                style={styles.modelSelectorButton}
+                hitSlop={{top: 6, bottom: 6, left: 6, right: 6}}>
+                <Text
+                  numberOfLines={1}
+                  variant="bodySmall"
+                  style={styles.modelName}>
+                  {activeModel.name}
+                </Text>
+                <ChevronDownIcon
+                  width={14}
+                  height={14}
+                  stroke={theme.colors.onSurfaceVariant}
+                />
+              </TouchableOpacity>
+            }>
+            {localModels.length > 0 && (
+              <Menu.Item label="本地模型" disabled isGroupLabel />
+            )}
+            {localModels.map(model => {
+              const isFree =
+                ((((model as any)?.enableGroups as string[] | undefined) || []).includes(
+                  'free',
+                ) ||
+                  model.name.startsWith('免费 '));
+
+              const modelNameWithoutFreePrefix = model.name.replace(
+                /^免费\s*/,
+                '',
+              );
+
+              return (
+                <Menu.Item
+                  key={model.id}
+                  label={
+                    isFree ? (
+                      <>
+                        <Text style={freeBadgeStyle}>免费</Text>{' '}
+                        {modelNameWithoutFreePrefix}
+                      </>
+                    ) : (
+                      model.name
+                    )
+                  }
+                  onPress={() => onSelectModel(model)}
+                  selected={model.id === modelStore.activeModelId}
+                />
+              );
+            })}
+            {localModels.length > 0 && remoteModels.length > 0 && (
+              <Menu.Separator />
+            )}
+            {remoteModels.length > 0 && (
+              <Menu.Item label="远程模型" disabled isGroupLabel />
+            )}
+            {remoteModels.map(model => {
+              const isFree =
+                ((((model as any)?.enableGroups as string[] | undefined) || []).includes(
+                  'free',
+                ) ||
+                  model.name.startsWith('免费 '));
+
+              const modelNameWithoutFreePrefix = model.name.replace(
+                /^免费\s*/,
+                '',
+              );
+
+              return (
+                <Menu.Item
+                  key={model.id}
+                  label={
+                    isFree ? (
+                      <>
+                        <Text style={freeBadgeStyle}>免费</Text>{' '}
+                        {modelNameWithoutFreePrefix}
+                      </>
+                    ) : (
+                      model.name
+                    )
+                  }
+                  onPress={() => onSelectModel(model)}
+                  selected={model.id === modelStore.activeModelId}
+                />
+              );
+            })}
+          </Menu>
+          {!isRemoteModel && (
             <View style={styles.shareContainer}>
               <ShareIcon
                 width={14}
                 height={14}
-                stroke={switchValue ? theme.colors.primary : theme.colors.onSurfaceVariant}
+                stroke={
+                  canShare
+                    ? switchValue
+                      ? theme.colors.primary
+                      : theme.colors.onSurfaceVariant
+                    : disabledColor
+                }
                 style={styles.shareIcon}
               />
               <View style={styles.switchWrapper}>
                 <Switch
-                  value={switchValue}
+                  value={canShare ? switchValue : false}
                   onValueChange={handleShareToggle}
-                  disabled={isSharing}
+                  disabled={!canShare || isSharing}
                   style={styles.shareSwitch}
                 />
                 {isSharing && (

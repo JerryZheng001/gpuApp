@@ -258,20 +258,23 @@ export const ModelsScreen: React.FC = observer(() => {
       return remote
         .slice()
         .sort((a, b) => {
-          const freeA =
-            ((((a as any)?.enableGroups as string[] | undefined) || []).includes(
-              'free',
-            ) ||
-              a.name.startsWith('免费 '))
-              ? 0
-              : 1;
-          const freeB =
-            ((((b as any)?.enableGroups as string[] | undefined) || []).includes(
-              'free',
-            ) ||
-              b.name.startsWith('免费 '))
-              ? 0
-              : 1;
+          const isFreeA =
+            typeof (a as any)?.currentClientIsFree === 'boolean'
+              ? (a as any).currentClientIsFree
+              : ((((a as any)?.enableGroups as string[] | undefined) || []).includes(
+                  'free',
+                ) ||
+                  a.name.startsWith('免费 '));
+          const isFreeB =
+            typeof (b as any)?.currentClientIsFree === 'boolean'
+              ? (b as any).currentClientIsFree
+              : ((((b as any)?.enableGroups as string[] | undefined) || []).includes(
+                  'free',
+                ) ||
+                  b.name.startsWith('免费 '));
+
+          const freeA = isFreeA ? 0 : 1;
+          const freeB = isFreeB ? 0 : 1;
           if (freeA !== freeB) {
             return freeA - freeB;
           }

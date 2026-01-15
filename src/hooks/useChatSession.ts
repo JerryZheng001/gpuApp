@@ -190,7 +190,16 @@ export const useChatSession = (
   const handleSendPress = async (message: MessageType.PartialText) => {
     const isRemoteModel = modelStore.activeModel?.origin === ModelOrigin.REMOTE;
     const localContext = modelStore.context;
-    const contextId = isRemoteModel ? 'remote' : String(localContext?.id ?? '');
+
+    const remoteModelName = isRemoteModel
+      ? (modelStore.activeModel as any)?.apiModel ||
+        modelStore.activeModel?.name ||
+        String(modelStore.activeModel?.id || '').replace(/^remote_/, '')
+      : undefined;
+
+    const contextId = isRemoteModel
+      ? `remote:${String(remoteModelName || 'default')}`
+      : String(localContext?.id ?? '');
 
     if (!contextId) {
       await addSystemMessage(l10n.chat.modelNotLoaded);
@@ -213,7 +222,10 @@ export const useChatSession = (
 
     // Get the current session messages BEFORE adding the new user message
     // Use toJS to get a snapshot and avoid MobX reactivity issues
-    const currentMessages = toJS(chatSessionStore.currentSessionMessages);
+    const allCurrentMessages = toJS(chatSessionStore.currentSessionMessages);
+    const currentMessages = isRemoteModel
+      ? allCurrentMessages.filter(m => (m as any)?.metadata?.contextId === contextId)
+      : allCurrentMessages;
 
     // Create the user message with embedded images
     const textMessage: MessageType.Text = {
@@ -297,7 +309,8 @@ export const useChatSession = (
         abortController.current?.abort();
         abortController.current = new AbortController();
 
-        const remoteModelName =
+        const remoteModelNameForRequest =
+          remoteModelName ||
           (modelStore.activeModel as any)?.apiModel ||
           modelStore.activeModel?.name ||
           String(modelStore.activeModel?.id || '').replace(/^remote_/, '');
@@ -312,7 +325,7 @@ export const useChatSession = (
         
         console.log('Remote model info:', {
           modelId: modelStore.activeModel?.id,
-          modelName: remoteModelName,
+          modelName: remoteModelNameForRequest,
           availableGroups: JSON.stringify(availableGroups),
           availableGroupsType: typeof availableGroups,
           selectedGroup: group,
@@ -331,7 +344,7 @@ export const useChatSession = (
           systemMessages,
           {
             ...cleanCompletionParams,
-            model: remoteModelName,
+            model: remoteModelNameForRequest,
             group,
           },
           data => {

@@ -130,10 +130,12 @@ export const ModelCard: React.FC<ModelCardProps> = observer(
     const isRemoteModel = model.origin === ModelOrigin.REMOTE;
     const isFreeRemoteModel =
       isRemoteModel &&
-      ((((model as any)?.enableGroups as string[] | undefined) || []).includes(
-        'free',
-      ) ||
-        model.name.startsWith('免费 '));
+      (typeof model.currentClientIsFree === 'boolean'
+        ? model.currentClientIsFree
+        : ((((model as any)?.enableGroups as string[] | undefined) || []).includes(
+            'free',
+          ) ||
+            model.name.startsWith('免费 ')));
     const modelNameWithoutFreePrefix = model.name.replace(/^免费\s*/, '');
     const freeBadgeStyle = {
       backgroundColor: '#e8fef4',

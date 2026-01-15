@@ -58,13 +58,13 @@ export interface MobileSignupResponse {
   message: string;
   data?: MobileUserData;
   session?: string; // 从响应头中提取的 session
-  token?: string; // 登录接口返回的 token（如有）
+  token?: string;
 }
 
+// 退出登录响应
 export interface MobileLogoutResponse {
-  success: boolean;
+  code: number;
   message: string;
-  code?: number;
 }
 
 /**
@@ -111,52 +111,6 @@ export async function sendVerifyCode(
       success: false,
       message:
         error instanceof Error ? error.message : '网络请求失败，请检查网络连接',
-    };
-  }
-}
-
-export async function mobileLogout(
-  session: string,
-  userId: number | string,
-  token: string,
-): Promise<MobileLogoutResponse> {
-  try {
-    const url = `${AUTH_API_BASE_URL}/api/user/mobile/logout`;
-    const requestBody = {token};
-
-    const response = await fetch(url, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Cookie: 'session=' + session,
-        'New-Api-User': String(userId),
-      },
-      body: JSON.stringify(requestBody),
-    });
-
-    const data = await response
-      .json()
-      .catch(() => ({success: response.ok, message: response.statusText}));
-
-    return {
-      ...(typeof data === 'object' && data ? data : {}),
-      success:
-        typeof (data as any)?.success === 'boolean'
-          ? (data as any).success
-          : response.ok,
-      message:
-        typeof (data as any)?.message === 'string'
-          ? (data as any).message
-          : response.ok
-            ? 'ok'
-            : response.statusText,
-      code:
-        typeof (data as any)?.code === 'number' ? (data as any).code : undefined,
-    };
-  } catch (error) {
-    return {
-      success: false,
-      message: error instanceof Error ? error.message : '网络请求失败，请检查网络连接',
     };
   }
 }
@@ -252,16 +206,11 @@ export async function mobileSignup(
 
     const data = await response.json();
     console.log('手机号登录/注册响应数据:', data);
-
-    // 尝试从响应体中提取 token（后端字段命名可能不统一）
-    const extractedToken: string | undefined =
-      (data as any)?.token || (data as any)?.data?.token;
     
     // 将 session 添加到响应中
     return {
       ...data,
       session: extractedSession,
-      token: extractedToken,
     };
   } catch (error) {
     console.error('手机号登录/注册失败:', error);
@@ -269,6 +218,67 @@ export async function mobileSignup(
       success: false,
       message:
         error instanceof Error ? error.message : '网络请求失败，请检查网络连接',
+    };
+  }
+}
+
+/**
+ * 移动端用户退出登录
+ * @param token 用户登录时获取的 Token
+ * @param session 登录时获取的 session（用于 Cookie）
+ * @param userId 用户ID（用于 New-Api-User 头）
+ */
+export async function mobileLogout(
+  token: string,
+  session?: string,
+  userId?: number,
+): Promise<MobileLogoutResponse> {
+  try {
+    const url = `${AUTH_API_BASE_URL}/api/user/mobile/logout`;
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+    };
+
+    // 添加 Cookie 头（如果有 session）
+    if (session) {
+      headers['Cookie'] = session;
+    }
+
+    // 添加 New-Api-User 头（如果有 userId）
+    if (userId) {
+      headers['New-Api-User'] = String(userId);
+    }
+
+    console.log('=== 退出登录请求 ===');
+    console.log('URL:', url);
+    console.log('Method: POST');
+    console.log('Headers:', headers);
+    console.log('Body:', { token });
+
+    const response = await fetch(url, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({ token }),
+    });
+
+    console.log('=== 退出登录响应 ===');
+    console.log('Status:', response.status);
+    console.log('Status Text:', response.statusText);
+
+    const data = await response.json();
+    console.log('Response Data:', data);
+
+    return data;
+  } catch (error) {
+    console.error('=== 退出登录失败 ===');
+    console.error('Error:', error);
+    console.error('Error Type:', error instanceof Error ? error.constructor.name : typeof error);
+    console.error('Error Message:', error instanceof Error ? error.message : String(error));
+    
+    // 返回错误格式的响应
+    return {
+      code: 500,
+      message: error instanceof Error ? error.message : '网络请求失败，请检查网络连接',
     };
   }
 }
@@ -356,7 +366,7 @@ export async function getQuotaRecords(
         // 动态导入 mobileAuthService 避免循环依赖
         const {mobileAuthService} = await import('./MobileAuthService');
         console.log('正在退出登录...');
-        mobileAuthService.signOut();
+        await mobileAuthService.signOut();
         console.log('已退出登录');
       } catch (error) {
         console.error('退出登录失败:', error);
@@ -391,4 +401,3 @@ export async function getQuotaRecords(
     };
   }
 }
-
