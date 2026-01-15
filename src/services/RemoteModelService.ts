@@ -19,6 +19,7 @@ interface RemoteModelData {
   model_parameters: string;
   logo_url: string;
   context_length: string;
+  current_client_is_free?: boolean;
   input_modalities: string[];
   output_modalities: string[];
   completion_ratio: number;
@@ -106,6 +107,7 @@ class RemoteModelService {
           headers: {
             'Content-Type': 'application/json',
             'Authorization': authHeader,
+            'Client-Type': 'app',
           },
           signal: controller.signal,
         });
@@ -131,7 +133,10 @@ class RemoteModelService {
       // 转换为应用内的Model格式
       return result.data.map((remoteModel: RemoteModelData, index: number) => {
         const enableGroups = remoteModel.enable_groups || ['default'];
-        const isFree = enableGroups.includes('free');
+        const isFree =
+          typeof remoteModel.current_client_is_free === 'boolean'
+            ? remoteModel.current_client_is_free
+            : enableGroups.includes('free');
         
         // 添加详细日志以调试分组问题
         if (remoteModel.model_name === 'LongCat-Flash-Chat') {
@@ -167,6 +172,7 @@ class RemoteModelService {
         defaultProjectionModel: undefined,
         visionEnabled: remoteModel.input_modalities.includes('image'),
         supportsThinking: false,
+        currentClientIsFree: isFree,
         // Model接口必需的属性
         defaultChatTemplate: {...chatTemplates.default},
         chatTemplate: chatTemplates.default,

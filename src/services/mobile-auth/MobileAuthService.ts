@@ -219,7 +219,20 @@ class MobileAuthService {
   /**
    * 退出登录
    */
-  signOut() {
+  async signOut() {
+    // 先调用退出登录接口
+    if (this.token && this.user) {
+      try {
+        const { mobileLogout } = await import('./MobileAuthApi');
+        const result = await mobileLogout(this.token, this.session || undefined, this.user.id);
+        console.log('退出登录接口响应:', result);
+      } catch (error) {
+        console.error('调用退出登录接口失败:', error);
+        // 即使接口失败，也继续执行本地清理
+      }
+    }
+
+    // 清理本地状态
     runInAction(() => {
       this.user = null;
       this.session = null; // 清除 session

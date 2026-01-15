@@ -61,6 +61,12 @@ export interface MobileSignupResponse {
   token?: string;
 }
 
+// 退出登录响应
+export interface MobileLogoutResponse {
+  code: number;
+  message: string;
+}
+
 /**
  * 发送短信验证码
  * @param phoneNumber 手机号
@@ -217,6 +223,67 @@ export async function mobileSignup(
 }
 
 /**
+ * 移动端用户退出登录
+ * @param token 用户登录时获取的 Token
+ * @param session 登录时获取的 session（用于 Cookie）
+ * @param userId 用户ID（用于 New-Api-User 头）
+ */
+export async function mobileLogout(
+  token: string,
+  session?: string,
+  userId?: number,
+): Promise<MobileLogoutResponse> {
+  try {
+    const url = `${AUTH_API_BASE_URL}/api/user/mobile/logout`;
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+    };
+
+    // 添加 Cookie 头（如果有 session）
+    if (session) {
+      headers['Cookie'] = session;
+    }
+
+    // 添加 New-Api-User 头（如果有 userId）
+    if (userId) {
+      headers['New-Api-User'] = String(userId);
+    }
+
+    console.log('=== 退出登录请求 ===');
+    console.log('URL:', url);
+    console.log('Method: POST');
+    console.log('Headers:', headers);
+    console.log('Body:', { token });
+
+    const response = await fetch(url, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({ token }),
+    });
+
+    console.log('=== 退出登录响应 ===');
+    console.log('Status:', response.status);
+    console.log('Status Text:', response.statusText);
+
+    const data = await response.json();
+    console.log('Response Data:', data);
+
+    return data;
+  } catch (error) {
+    console.error('=== 退出登录失败 ===');
+    console.error('Error:', error);
+    console.error('Error Type:', error instanceof Error ? error.constructor.name : typeof error);
+    console.error('Error Message:', error instanceof Error ? error.message : String(error));
+    
+    // 返回错误格式的响应
+    return {
+      code: 500,
+      message: error instanceof Error ? error.message : '网络请求失败，请检查网络连接',
+    };
+  }
+}
+
+/**
  * 获取配额记录
  * @param session 登录接口获取的 session
  * @param userId 登录接口返回的 user id
@@ -299,7 +366,7 @@ export async function getQuotaRecords(
         // 动态导入 mobileAuthService 避免循环依赖
         const {mobileAuthService} = await import('./MobileAuthService');
         console.log('正在退出登录...');
-        mobileAuthService.signOut();
+        await mobileAuthService.signOut();
         console.log('已退出登录');
       } catch (error) {
         console.error('退出登录失败:', error);

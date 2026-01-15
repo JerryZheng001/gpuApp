@@ -204,10 +204,12 @@ export const HeaderRight: React.FC = observer(() => {
           disabled={models.length === 0}
           submenu={models.map(model => {
             const isFree =
-              ((((model as any)?.enableGroups as string[] | undefined) || []).includes(
-                'free',
-              ) ||
-                model.name.startsWith('免费 '));
+              typeof (model as any)?.currentClientIsFree === 'boolean'
+                ? (model as any).currentClientIsFree
+                : ((((model as any)?.enableGroups as string[] | undefined) || []).includes(
+                    'free',
+                  ) ||
+                    model.name.startsWith('免费 '));
 
             const modelNameWithoutFreePrefix = model.name.replace(/^免费\s*/, '');
 

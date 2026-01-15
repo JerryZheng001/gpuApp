@@ -1265,7 +1265,7 @@ export const SettingsScreen: React.FC = observer(() => {
                               console.error('停止分享或清空设备数据失败:', error);
                             }
                             // 退出登录
-                            mobileAuthService.signOut();
+                            await mobileAuthService.signOut();
                             Alert.alert('提示', '已退出登录');
                           },
                         },

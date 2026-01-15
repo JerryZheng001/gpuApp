@@ -47,8 +47,15 @@ export const ChatHeaderTitle: React.FC = observer(() => {
   const openModelMenu = useCallback(() => setModelMenuVisible(true), []);
   const closeModelMenu = useCallback(() => setModelMenuVisible(false), []);
 
-  const isShared = activeModel?.id && modelStore.sharedModelId === activeModel.id;
-  const canShare = activeModel?.isDownloaded && mobileAuthService.isAuthenticated && deviceService.isDeviceBound;
+  const isShared = !!(activeModel?.id && modelStore.sharedModelId === activeModel.id);
+  const isRemoteModel = activeModel?.origin === ModelOrigin.REMOTE;
+  const canShare =
+    !!activeModel?.isDownloaded &&
+    !isRemoteModel &&
+    mobileAuthService.isAuthenticated &&
+    deviceService.isDeviceBound;
+  const disabledColor =
+    (theme.colors as any).onSurfaceDisabled || theme.colors.onSurfaceVariant;
 
   const freeBadgeStyle = {
     backgroundColor: '#e8fef4',
@@ -62,20 +69,23 @@ export const ChatHeaderTitle: React.FC = observer(() => {
   const models = modelStore.availableModels
     .slice()
     .sort((a, b) => {
-      const freeA =
-        ((((a as any)?.enableGroups as string[] | undefined) || []).includes(
-          'free',
-        ) ||
-          a.name.startsWith('免费 '))
-          ? 0
-          : 1;
-      const freeB =
-        ((((b as any)?.enableGroups as string[] | undefined) || []).includes(
-          'free',
-        ) ||
-          b.name.startsWith('免费 '))
-          ? 0
-          : 1;
+      const isFreeA =
+        typeof (a as any)?.currentClientIsFree === 'boolean'
+          ? (a as any).currentClientIsFree
+          : ((((a as any)?.enableGroups as string[] | undefined) || []).includes(
+              'free',
+            ) ||
+              a.name.startsWith('免费 '));
+      const isFreeB =
+        typeof (b as any)?.currentClientIsFree === 'boolean'
+          ? (b as any).currentClientIsFree
+          : ((((b as any)?.enableGroups as string[] | undefined) || []).includes(
+              'free',
+            ) ||
+              b.name.startsWith('免费 '));
+
+      const freeA = isFreeA ? 0 : 1;
+      const freeB = isFreeB ? 0 : 1;
       if (freeA !== freeB) {
         return freeA - freeB;
       }
@@ -524,19 +534,25 @@ export const ChatHeaderTitle: React.FC = observer(() => {
               );
             })}
           </Menu>
-          {canShare && (
+          {!isRemoteModel && (
             <View style={styles.shareContainer}>
               <ShareIcon
                 width={14}
                 height={14}
-                stroke={switchValue ? theme.colors.primary : theme.colors.onSurfaceVariant}
+                stroke={
+                  canShare
+                    ? switchValue
+                      ? theme.colors.primary
+                      : theme.colors.onSurfaceVariant
+                    : disabledColor
+                }
                 style={styles.shareIcon}
               />
               <View style={styles.switchWrapper}>
                 <Switch
-                  value={switchValue}
+                  value={canShare ? switchValue : false}
                   onValueChange={handleShareToggle}
-                  disabled={isSharing}
+                  disabled={!canShare || isSharing}
                   style={styles.shareSwitch}
                 />
                 {isSharing && (
